@@ -45,13 +45,13 @@ function debug() {
 }
 
 function run() {
-	package && java -jar target/cas.war
+	package && java -XX:TieredStopAtLevel=1 -Xverify:none -jar target/cas.war
 }
 
 function runalone() {
 	shift
    ./mvnw clean package -P default,exec  "$@"
-    chmod +x target/cas.war
+   chmod +x target/cas.war
    target/cas.war
 }
 
@@ -111,18 +111,19 @@ function gencert() {
 }
 
 function cli() {
+	rm -f *.log
 
 	CAS_VERSION=$(./mvnw -q -Dexec.executable="echo" -Dexec.args='${cas.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec 2>/dev/null)
-	# echo "CAS version: $CAS_VERSION"
+	echo "CAS version: $CAS_VERSION"
 	JAR_FILE_NAME="cas-server-support-shell-${CAS_VERSION}.jar"
-	# echo "JAR name: $JAR_FILE_NAME"
+	echo "JAR name: $JAR_FILE_NAME"
 	JAR_PATH="org/apereo/cas/cas-server-support-shell/${CAS_VERSION}/${JAR_FILE_NAME}"
-	# echo "JAR path: $JAR_PATH"
+	echo "JAR path: $JAR_PATH"
 
 	JAR_FILE_LOCAL="$HOME/.m2/repository/$JAR_PATH";
-	# echo "Local JAR file path: $JAR_FILE_LOCAL";
+	echo "Local JAR file path: $JAR_FILE_LOCAL";
 	if [ -f "$JAR_FILE_LOCAL" ]; then
-		# echo "Using JAR file locally at $JAR_FILE_LOCAL"
+		echo "Using JAR file locally at $JAR_FILE_LOCAL"
 		java -jar $JAR_FILE_LOCAL "$@"
 		exit 0;
 	fi
@@ -134,6 +135,7 @@ function cli() {
 		./mvnw org.apache.maven.plugins:maven-dependency-plugin:3.0.2:get -DgroupId=org.apereo.cas -DartifactId=cas-server-support-shell -Dversion=$CAS_VERSION -Dpackaging=jar -DartifactItem.outputDirectory=$DOWNLOAD_DIR -DremoteRepositories=central::default::http://repo1.maven.apache.org/maven2,snapshots::::https://oss.sonatype.org/content/repositories/snapshots -Dtransitive=false
 		./mvnw org.apache.maven.plugins:maven-dependency-plugin:3.0.2:copy -Dmdep.useBaseVersion=true -Dartifact=org.apereo.cas:cas-server-support-shell:$CAS_VERSION:jar -DoutputDirectory=$DOWNLOAD_DIR
 	fi
+	echo "Running $COMMAND_FILE"
 	java -jar $COMMAND_FILE "$@"
 	exit 0;
 
