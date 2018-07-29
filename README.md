@@ -6,12 +6,12 @@ Generic CAS WAR overlay to exercise the latest versions of CAS. This overlay cou
 # Versions
 
 ```xml
-<cas.version>5.3.x</cas.version>
+<cas.version>6.0.x</cas.version>
 ```
 
 # Requirements
 
-* JDK 1.8+
+* JDK 11
 
 # Configuration
 
