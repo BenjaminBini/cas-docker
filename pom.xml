@@ -7,7 +7,7 @@
     <artifactId>cas-overlay</artifactId>
     <packaging>war</packaging>
     <version>1.0</version>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -79,7 +79,9 @@
     <properties>
         <cas.version>6.0.0-RC1-SNAPSHOT</cas.version>
         <springboot.version>2.0.3.RELEASE</springboot.version>
-
+        <tomcat.version>9</tomcat.version>
+        <tomcat.fullversion>${tomcat.version}.0.10</tomcat.fullversion>
+        
         <!-- app.server could be -jetty, -undertow, -tomcat, or blank if you plan to provide appserver -->
         <app.server>-tomcat</app.server>
         <isExecutable>false</isExecutable>
@@ -173,10 +175,11 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
-            <id>bootiful</id>
+            <id>external</id>
             <properties>
-                <app.server>-tomcat</app.server>
+                <app.server></app.server>
                 <isExecutable>false</isExecutable>
+                <mainClass>${startClass}</mainClass>
             </properties>
             <dependencies>
                 <dependency>
@@ -184,10 +187,51 @@
                     <artifactId>cas-server-webapp${app.server}</artifactId>
                     <version>${cas.version}</version>
                     <type>war</type>
-                    <scope>runtime</scope>
+                    <scope>compile</scope>
                 </dependency>
             </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.googlecode.maven-download-plugin</groupId>
+                        <artifactId>download-maven-plugin</artifactId>
+                        <version>1.4.1</version>
+                        <executions>
+                            <execution>
+                                <id>download-tomcat</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>wget</goal>
+                                </goals>
+                                <configuration>
+                                    <url>http://www-eu.apache.org/dist/tomcat/tomcat-${tomcat.version}/v${tomcat.fullversion}/bin/apache-tomcat-${tomcat.fullversion}.zip</url>
+                                    <unpack>true</unpack>
+                                    <outputDirectory>${project.basedir}</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.coderplus.maven.plugins</groupId>
+                        <artifactId>copy-rename-maven-plugin</artifactId>
+                        <version>1.0</version>
+                        <executions>
+                            <execution>
+                                <id>rename-file</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>rename</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>${project.basedir}/apache-tomcat-${tomcat.fullversion}</sourceFile>
+                                    <destinationFile>${project.basedir}/apache-tomcat</destinationFile>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
-        
+
     </profiles>
 </project>

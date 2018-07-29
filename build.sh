@@ -10,14 +10,14 @@ function copy() {
 }
 
 function help() {
-	echo "Usage: build.sh [copy|clean|package|run|debug|bootrun|gencert]"
+	echo "Usage: build.sh [copy|clean|package|run|debug|tomcat|gencert]"
 	echo "	copy: Copy config from ./etc/cas/config to /etc/cas/config"
 	echo "	clean: Clean Maven build directory"
 	echo "	package: Clean and build CAS war"
 	echo "	run: Build and run cas.war via Java (i.e. java -jar target/cas.war)"
 	echo "	runalone: Build and run cas.war on its own as a standalone executable (target/cas.war)"
 	echo "	debug: Run CAS.war and listen for Java debugger on port 5000"
-	echo "	bootrun: Run with maven spring boot plugin"
+	echo "	tomcat: Deploy the CAS web application to an external Apache Tomcat server"
 	echo "	listviews: List all CAS views that ship with the web application and can be customized in the overlay"
 	echo "	getview: Ask for a view name to be included in the overlay for customizations"
 	echo "	gencert: Create keystore with SSL certificate in location where CAS looks by default"
@@ -35,9 +35,19 @@ function package() {
 	# copy
 }
 
-function bootrun() {
+function tomcat() {
     shift
-	./mvnw clean package spring-boot:run -P bootiful -T 5 "$@"
+
+	export CATALINA_HOME=./apache-tomcat/
+    echo "Attempting to shutdown Apache Tomcat..."
+    ./apache-tomcat/bin/shutdown.sh 2>/dev/null
+	ps -ef | grep tomcat
+
+    rm -Rf ./apache-tomcat
+	./mvnw clean package -P external -T 5 "$@" && cp target/cas.war apache-tomcat/webapps/
+	chmod +x ./apache-tomcat/bin/*.sh
+	./apache-tomcat/bin/startup.sh
+	tail -F ./apache-tomcat/logs/catalina.out
 }
 
 function debug() {
@@ -91,7 +101,6 @@ function getview() {
 		echo "More than one view file is found. Narrow down the search query..."
 	fi
 }
-
 
 function gencert() {
 	if [[ ! -d /etc/cas ]] ; then
@@ -159,9 +168,9 @@ case "$1" in
 	shift
     package "$@"
     ;;
-"bootrun")
+"tomcat")
 	shift
-    bootrun "$@"
+    tomcat "$@"
     ;;
 "debug")
     debug "$@"
