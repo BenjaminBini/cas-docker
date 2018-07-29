@@ -7,7 +7,7 @@
     <artifactId>cas-overlay</artifactId>
     <packaging>war</packaging>
     <version>1.0</version>
-
+    
     <build>
         <plugins>
             <plugin>
@@ -24,9 +24,10 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${springboot.version}</version>
                 <configuration>
-                    <mainClass>org.apereo.cas.web.CasWebApplication</mainClass>
+                    <mainClass>${startClass}</mainClass>
                     <addResources>true</addResources>
                     <executable>${isExecutable}</executable>
+                    <noverify>true</noverify>
                     <layout>WAR</layout>
                     <excludes>
                         <exclude>
@@ -54,6 +55,9 @@
                     <recompressZippedFiles>false</recompressZippedFiles>
                     <archive>
                         <compress>false</compress>
+                        <manifestEntries>
+                            <Main-Class>${mainClass}</Main-Class>
+                        </manifestEntries>
                     </archive>
                     <overlays>
                         <overlay>
@@ -78,8 +82,9 @@
 
         <!-- app.server could be -jetty, -undertow, -tomcat, or blank if you plan to provide appserver -->
         <app.server>-tomcat</app.server>
-
         <isExecutable>false</isExecutable>
+        <startClass>org.apereo.cas.web.CasWebApplication</startClass>
+        <mainClass>org.springframework.boot.loader.WarLauncher</mainClass>
 
         <maven.compiler.source>10</maven.compiler.source>
         <maven.compiler.target>10</maven.compiler.target>
@@ -92,6 +97,27 @@
             <url>http://oss.sonatype.org/content/repositories/releases/</url>
             <snapshots>
                 <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+
+        <repository>
+            <id>spring-lib-milestone</id>
+            <url>https://repo.spring.io/libs-milestone</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io</url>
+            <snapshots>
+                <enabled>true</enabled>
             </snapshots>
             <releases>
                 <enabled>true</enabled>
@@ -162,6 +188,6 @@
                 </dependency>
             </dependencies>
         </profile>
-
+        
     </profiles>
 </project>
