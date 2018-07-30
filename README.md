@@ -1,29 +1,32 @@
 CAS Overlay Template
 =======================
 
-Generic CAS WAR overlay to exercise the latest versions of CAS. This overlay could be freely used as a starting template for local CAS war overlays. The CAS services management overlay is available [here](https://github.com/apereo/cas-services-management-overlay).
+Generic CAS WAR overlay to exercise the latest versions of CAS. This overlay could be freely used as a starting template for local CAS war overlays.
 
 # Versions
 
-```xml
-<cas.version>6.0.x</cas.version>
+- CAS `6.0.x`
+- JDK `11`
+
+# Overview
+
+The project structure contains two variants for Apache Maven and Gradle WAR overlays, inside `maven-overlay` and `gradle-overlay` respectively. You may invoke
+build commands using the `build.sh` script to work with your chosen overlay using:
+
+```bash
+./build.sh [maven|gradle] [command]
 ```
-
-# Requirements
-
-* JDK 11
-
-# Configuration
-
-The `etc` directory contains the configuration files and directories that need to be copied to `/etc/cas/config`.
-
-# Build
 
 To see what commands are available to the build script, run:
 
 ```bash
 ./build.sh help
 ```
+
+# Configuration
+
+- The `etc` directory contains the configuration files and directories that need to be copied to `/etc/cas/config`.
+- The mechanics of the build are controlled for both Apache Maven and Gradle using the `build.properties` file.
 
 # Deployment
 
@@ -32,7 +35,6 @@ To see what commands are available to the build script, run:
 
 On a successful deployment via the following methods, CAS will be available at:
 
-* `http://cas.server.name:8080/cas`
 * `https://cas.server.name:8443/cas`
 
 ## Executable WAR
@@ -43,15 +45,6 @@ Run the CAS web application as an executable WAR.
 ./build.sh run
 ```
 
-## Windows Build
-
-If you are building on windows, try `build.cmd` instead of `build.sh`. Arguments are similar but for usage, run:
-
-```
-build.cmd help
-```
-
 ## External
 
 Deploy the binary web application file `cas.war` after a successful build to a servlet container of choice.
-
