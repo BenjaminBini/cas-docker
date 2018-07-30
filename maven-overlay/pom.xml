@@ -81,7 +81,7 @@
         <springboot.version>2.0.3.RELEASE</springboot.version>
         <tomcat.version>9</tomcat.version>
         <tomcat.fullversion>${tomcat.version}.0.10</tomcat.fullversion>
-        
+
         <!-- app.server could be -jetty, -undertow, -tomcat, or blank if you plan to provide appserver -->
         <app.server>-tomcat</app.server>
         <isExecutable>false</isExecutable>

@@ -6,16 +6,16 @@ function copy() {
 	mkdir -p /etc/cas/config
 
 	echo -e "Copying configuration files from etc/cas to /etc/cas"
-	cp -rfv etc/cas/* /etc/cas
+	cp -rfv ../etc/cas/* /etc/cas
 }
 
 function help() {
 	echo "Usage: build.sh [copy|clean|package|run|debug|tomcat|gencert]"
-	echo "	copy: Copy config from ./etc/cas/config to /etc/cas/config"
+	echo "	copy: Copy config from the project's local etc/cas/config directory to the root /etc/cas/config"
 	echo "	clean: Clean Maven build directory"
 	echo "	package: Clean and build CAS war"
-	echo "	run: Build and run cas.war via Java (i.e. java -jar target/cas.war)"
-	echo "	runalone: Build and run cas.war on its own as a standalone executable (target/cas.war)"
+	echo "	run: Build and run cas.war via Java"
+	echo "	runalone: Build and run cas.war on its own as a standalone executable"
 	echo "	debug: Run CAS.war and listen for Java debugger on port 5000"
 	echo "	tomcat: Deploy the CAS web application to an external Apache Tomcat server"
 	echo "	listviews: List all CAS views that ship with the web application and can be customized in the overlay"
