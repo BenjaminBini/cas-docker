@@ -239,8 +239,13 @@ function cli() {
 
 }
 
-buildTool=$1
-command=$2
+if [ "$#" -lt 2 ]; then
+	buildTool=""
+	command=""
+else
+	buildTool=$1
+	command=$2
+fi
 
 if [ -z "$command" ]; then
     echo "No commands provided. Defaulting to [run]"
