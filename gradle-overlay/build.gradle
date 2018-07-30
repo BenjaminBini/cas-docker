@@ -85,11 +85,10 @@ task copyConfig(type: Copy, description: "Copy CAS configuration over to /etc/ca
 }
 
 task explodeWar(type: Copy, group: "build", description: "Explodes the cas.war") {
-    doLast {
-        from zipTree(project.war.outputs.files.singleFile)
-        into "${buildDir}/cas"
-        println "CAS web application artifact exploded into [cas/build/cas]"
-    }
+    dependsOn build
+    from zipTree("build/libs/cas.war")
+    into "${buildDir}/cas"
+    println "CAS web application artifact exploded into [cas/build/cas]"
 }
 
 task run(group: "build", description: "Run the CAS web application in embedded container mode") {
