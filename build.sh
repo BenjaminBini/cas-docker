@@ -5,7 +5,7 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
 		IFS='=' read -r -a array <<< "$line"
 		varName=${array[0]}
 		varValue=${array[1]}
-		export "$varName"="$varValue" 2>/dev/null
+		export "$varName"="$varValue"
 	fi
 done < ./build.properties
 
@@ -53,11 +53,10 @@ function clean() {
 }
 
 function package() {
-	clean
 	if [ "$buildTool" = "maven" ]; then
-		./mvnw package "$@"
+		./mvnw clean package "$@"
 	else
-		./gradlew build "$@"
+		./gradlew clean build "$@"
 	fi
 }
 
@@ -79,16 +78,38 @@ function dependencies() {
 }
 
 function tomcat() {
+	# if [ "$buildTool" = "maven" ]; then
+	# 	./mvnw clean package -P external "$@"
+	# else
+	# 	./gradlew clean build -Pexternal=true "$@"
+	# fi
+
+	pushd ..
+
+	if [ ! -f apache-tomcat.zip ]; then
+		wget -O apache-tomcat.zip "http://www-eu.apache.org/dist/tomcat/tomcat-${tomcatVersion}/v${tomcatFullVersion}/bin/apache-tomcat-${tomcatFullVersion}.zip"
+	fi
+	rm -Rf ./apache-tomcat
+	unzip -o apache-tomcat.zip >/dev/null
+	mv apache-tomcat-${tomcatFullVersion} apache-tomcat
+
 	export CATALINA_HOME=./apache-tomcat/
+	chmod +x ./apache-tomcat/bin/*.sh
     echo "Attempting to shutdown Apache Tomcat..."
     ./apache-tomcat/bin/shutdown.sh 2>/dev/null
-	ps -ef | grep tomcat
 
-    rm -Rf ./apache-tomcat
-	./mvnw clean package -P external -T 5 "$@" && cp target/cas.war apache-tomcat/webapps/
-	chmod +x ./apache-tomcat/bin/*.sh
+	popd
+
+	if [ "$buildTool" = "maven" ]; then
+		cp target/cas.war .../apache-tomcat/webapps/
+	else
+		cp build/libs/cas.war ../apache-tomcat/webapps/
+	fi
+
+	pushd ..
 	./apache-tomcat/bin/startup.sh
-	tail -F ./apache-tomcat/logs/catalina.out
+	popd
+	tail -F ../apache-tomcat/logs/catalina.out
 }
 
 function debug() {

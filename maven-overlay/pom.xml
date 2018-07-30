@@ -177,54 +177,12 @@
             <dependencies>
                 <dependency>
                     <groupId>org.apereo.cas</groupId>
-                    <artifactId>cas-server-webapp</artifactId>
+                    <artifactId>cas-server-webapp${appServer}</artifactId>
                     <version>${casVersion}</version>
                     <type>war</type>
                     <scope>compile</scope>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.googlecode.maven-download-plugin</groupId>
-                        <artifactId>download-maven-plugin</artifactId>
-                        <version>1.4.1</version>
-                        <executions>
-                            <execution>
-                                <id>download-tomcat</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>wget</goal>
-                                </goals>
-                                <configuration>
-                                    <url>http://www-eu.apache.org/dist/tomcat/tomcat-${tomcatVersion}/v${tomcatFullVersion}/bin/apache-tomcat-${tomcatFullVersion}.zip</url>
-                                    <unpack>true</unpack>
-                                    <outputDirectory>${project.basedir}</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.coderplus.maven.plugins</groupId>
-                        <artifactId>copy-rename-maven-plugin</artifactId>
-                        <version>1.0</version>
-                        <executions>
-                            <execution>
-                                <id>rename-file</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>rename</goal>
-                                </goals>
-                                <configuration>
-                                    <sourceFile>${project.basedir}/apache-tomcat-${tomcat.fullversion}</sourceFile>
-                                    <destinationFile>${project.basedir}/apache-tomcat</destinationFile>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
-
     </profiles>
 </project>

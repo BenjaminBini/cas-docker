@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.'springboot.version'}"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$System.env.springBootVersion"
     }
 }
 
@@ -22,8 +22,11 @@ apply plugin: "org.springframework.boot"
 apply plugin: "eclipse"
 apply plugin: "idea"
 
+sourceCompatibility=System.env.sourceCompatibility
+targetCompatibility=System.env.targetCompatibility
+
 def currentBranch = "master"
-def currentVersion = "${project.'cas.version'}"
+def currentVersion = "$System.env.casVersion"
 if (!currentVersion.contains("RC")) {
     def matcher = currentVersion =~ /(\d+\.\d+\.).+/
     if (matcher.find()) {
@@ -73,28 +76,25 @@ bootRun {
 }
 
 dependencies {
-    compile "org.apereo.cas:cas-server-webapp${project.'app.server'}:${project.'cas.version'}@war"
-    // Other dependencies may be listed here...
-}
+    if (project.hasProperty("external")) {
+        compile "org.apereo.cas:cas-server-webapp$System.env.appServer:$System.env.casVersion@war"
+    } else {
+        compile "org.apereo.cas:cas-server-webapp:$System.env.casVersion@war"
+    }
 
-task copyConfig(type: Copy, description: "Copy CAS configuration over to /etc/cas/config") {
-	doLast {
-    	from "${project.rootDir}/etc/cas/config"
-    	into '/etc/cas/config'
-	}
+    // Other dependencies may be listed here...
 }
 
 task explodeWar(type: Copy, group: "build", description: "Explodes the cas.war") {
     dependsOn build
     from zipTree("build/libs/cas.war")
     into "${buildDir}/cas"
-    println "CAS web application artifact exploded into [cas/build/cas]"
 }
 
 task run(group: "build", description: "Run the CAS web application in embedded container mode") {
     dependsOn build
     doLast {
-        def casRunArgs = Arrays.asList(project.'cas.run.jvmArgs'.split(" "))
+        def casRunArgs = Arrays.asList("-Xmx2048M -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y".split(" "))
         javaexec {
             main = "-jar";
             jvmArgs = casRunArgs
@@ -104,10 +104,10 @@ task run(group: "build", description: "Run the CAS web application in embedded c
     }
 }
 
-task debug(group: "build", description: "Debug the CAS web application in embedded mode on port 5005") {
+task debug(group: "build", description: "Debug the CAS web application in embedded mode on port 5000") {
     dependsOn build
     doLast {
-        def casDebugArgs = Arrays.asList(project.'cas.debug.jvmArgs'.split(" "))
+        def casDebugArgs = Arrays.asList("-Xmx2048M".split(" "))
 
         javaexec {
             main = "-jar";
@@ -120,12 +120,12 @@ task debug(group: "build", description: "Debug the CAS web application in embedd
 }
 
 task wrapper(type: Wrapper, description: "Update the Gradle wrapper") {
-    gradleVersion = project."gradle.version"
+    gradleVersion = "4.9"
 }
 
 task casVersion(group: "build", description: "Display the current CAS version") {
     doFirst {
-        println "${project.'cas.version'}"
+        println "$System.env.casVersion"
     }
 }
 
@@ -137,4 +137,4 @@ task showConfiguration(group: "build", description: "Show configurations for eac
 }
 
 task allDependenciesInsight(type: DependencyInsightReportTask, description: "Produce insight information for all dependencies") {}
-task allDependencies(type: DependencyReportTask, description: "Display a graph of all project dependencies") {}		
+task allDependencies(type: DependencyReportTask, description: "Display a graph of all project dependencies") {}
