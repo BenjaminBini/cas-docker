@@ -1,5 +1,14 @@
 #!/bin/bash
 
+while IFS='' read -r line || [[ -n "$line" ]]; do
+	if [ -n "$line" ] && [[ $line != \#* ]] ; then
+		IFS='=' read -r -a array <<< "$line"
+		varName=${array[0]}
+		varValue=${array[1]}
+		export "$varName"="$varValue" 2>/dev/null
+	fi
+done < ./build.properties
+
 function copy() {
 	echo -e "Creating configuration directory under /etc/cas"
 	mkdir -p /etc/cas/config
@@ -11,26 +20,28 @@ function copy() {
 function help() {
 	clear
 	echo "******************************************************************"
-	echo "Apereo CAS"
+	tput setaf 2
+	echo "Apereo CAS ${casVersion}"
 	echo "Enterprise Single SignOn for all earthlings and beyond"
+	tput sgr 0
 	echo "- https://github.com/apereo/cas"
 	echo "- https://apereo.github.io/cas"
 	echo "******************************************************************"
 
-	echo -e "Usage: build.sh [maven|gradle] [copy|clean|package|run|update|debug|tomcat|gencert]\n"
-	echo "	clean: Clean Maven build directory"
-	echo "	cli: Run the CAS command line shell and pass commands"
-	echo "	copy: Copy config from the project's local etc/cas/config directory to the root /etc/cas/config"
-	echo "	debug: Run cas.war and listen for Java debugger on port 5000"
-	echo "	dependencies: Get a report of all dependencies configured in the build"
-	echo "	gencert: Create keystore with SSL certificate in location where CAS looks by default"
-	echo "	getview: Ask for a view name to be included in the overlay for customizations"
-	echo "	listviews: List all CAS views that ship with the web application and can be customized in the overlay"
-	echo "	package: Clean and build CAS war"
-	echo "	run: Build and run cas.war via Java as an executable war"
-	echo "	runalone: Build and run cas.war on its own as a standalone executable"
-	echo "	tomcat: Deploy the CAS web application to an external Apache Tomcat server"
-	echo "	update: Package the CAS overlay by force-updating dependencies and SNAPSHOT versions"
+	echo -e "Usage: build.sh [maven|gradle] [copy|clean|package|run|dependencies|update|debug|tomcat|gencert]\n"
+	echo -e "\tclean: \t\tClean Maven build directory"
+	echo -e "\tcli: \t\tRun the CAS command line shell and pass commands"
+	echo -e "\tcopy: \t\tCopy config from the project's local etc/cas/config directory to the root /etc/cas/config"
+	echo -e "\tdebug: \t\tRun cas.war and listen for Java debugger on port 5000"
+	echo -e "\tdependencies: \tGet a report of all dependencies configured in the build"
+	echo -e "\tgencert: \tCreate keystore with SSL certificate in location where CAS looks by default"
+	echo -e "\tgetview: \tAsk for a view name to be included in the overlay for customizations"
+	echo -e "\tlistviews: \tList all CAS views that ship with the web application and can be customized in the overlay"
+	echo -e "\tpackage: \tClean and build CAS war"
+	echo -e "\trun: \t\tBuild and run cas.war via Java as an executable war"
+	echo -e "\trunalone: \tBuild and run cas.war on its own as a standalone executable"
+	echo -e "\ttomcat: \tDeploy the CAS web application to an external Apache Tomcat server"
+	echo -e "\tupdate: \tPackage the CAS overlay by force-updating dependencies and SNAPSHOT versions"
 }
 
 function clean() {
