@@ -78,11 +78,11 @@ function dependencies() {
 }
 
 function tomcat() {
-	# if [ "$buildTool" = "maven" ]; then
-	# 	./mvnw clean package -P external "$@"
-	# else
-	# 	./gradlew clean build -Pexternal=true "$@"
-	# fi
+	if [ "$buildTool" = "maven" ]; then
+		./mvnw clean package -P external "$@"
+	else
+		./gradlew clean build -Pexternal=true "$@"
+	fi
 
 	pushd ..
 
