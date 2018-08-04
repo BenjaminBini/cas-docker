@@ -1,0 +1,138 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.springBootVersion}"
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://build.shibboleth.net/nexus/content/repositories/releases/' }
+}
+
+apply from: "https://dl.bintray.com/scalding/generic/waroverlay.gradle"
+
+apply plugin: "war"
+apply plugin: "org.springframework.boot"
+apply plugin: "eclipse"
+apply plugin: "idea"
+
+def currentBranch = "master"
+def currentVersion = "$System.env.casVersion"
+if (!currentVersion.contains("RC")) {
+    def matcher = currentVersion =~ /(\d+\.\d+\.).+/
+    if (matcher.find()) {
+        currentBranch = matcher.group(1) + "x"
+    }
+}
+logger.info "Using CAS branch [${currentBranch}] to handle overrides"
+apply from: "https://raw.githubusercontent.com/apereo/cas/${currentBranch}/gradle/overrides.gradle"
+
+eclipse {
+    classpath {
+       downloadSources = true
+       downloadJavadoc = true
+    }
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+war {
+    includeWarJars = true
+    entryCompression = ZipEntryCompression.STORED
+}
+
+springBoot {
+    mainClassName = "org.apereo.cas.web.CasWebApplication"
+}
+
+bootWar {
+	if (project.hasProperty('executable')) {
+    	launchScript()
+	}
+
+	archiveName 'cas.war'
+    baseName 'cas'
+
+    excludeDevtools = false
+}
+
+bootRun {
+    sourceResources sourceSets.main
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+dependencies {
+    if (project.hasProperty("external")) {
+        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${project.casVersion}@war"
+    } else {
+        compile "org.apereo.cas:cas-server-webapp:${project.casVersion}@war"
+    }
+    // Other dependencies may be listed here...
+}
+
+task explodeWar(type: Copy, group: "build", description: "Explodes the cas.war") {
+    dependsOn build
+    from zipTree("build/libs/cas.war")
+    into "${buildDir}/cas"
+}
+
+task run(group: "build", description: "Run the CAS web application in embedded container mode") {
+    dependsOn build
+    doLast {
+        def args = "-Xmx2048M -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"
+        def casRunArgs = Arrays.asList(args.split(" "))
+        javaexec {
+            main = "-jar";
+            jvmArgs = casRunArgs
+            args = ["build/libs/cas.war"]
+            logger.info "Started ${commandLine}"
+        }
+    }
+}
+
+task debug(group: "build", description: "Debug the CAS web application in embedded mode on port 5000") {
+    dependsOn build
+    doLast {
+        def casDebugArgs = Arrays.asList("-Xmx2048M".split(" "))
+
+        javaexec {
+            main = "-jar";
+            jvmArgs = casDebugArgs
+            args = ["build/libs/cas.war"]
+
+            logger.info "Started ${commandLine}"
+        }
+    }
+}
+
+task wrapper(type: Wrapper, description: "Update the Gradle wrapper") {
+    gradleVersion = "${project.gradleVersion}"
+}
+
+task casVersion(group: "build", description: "Display the current CAS version") {
+    doFirst {
+        println "${project.casVersion}"
+    }
+}
+
+task showConfiguration(group: "build", description: "Show configurations for each dependency, etc") {
+    doLast() {
+        def cfg = project.hasProperty("configuration") ? project.property("configuration") : "compile"
+        configurations.getByName(cfg).each { println it }
+    }
+}
+
+task allDependenciesInsight(type: DependencyInsightReportTask, description: "Produce insight information for all dependencies") {}
+task allDependencies(type: DependencyReportTask, description: "Display a graph of all project dependencies") {}
