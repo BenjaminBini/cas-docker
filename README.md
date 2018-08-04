@@ -10,11 +10,10 @@ Generic CAS WAR overlay to exercise the latest versions of CAS. This overlay cou
 
 # Overview
 
-The project structure contains two variants for Apache Maven and Gradle WAR overlays, inside `maven-overlay` and `gradle-overlay` respectively. You may invoke
-build commands using the `build.sh` script to work with your chosen overlay using:
+You may invoke build commands using the `build.sh` script to work with your chosen overlay using:
 
 ```bash
-./build.sh [maven|gradle] [command]
+./build.sh [command]
 ```
 
 To see what commands are available to the build script, run:
@@ -26,7 +25,34 @@ To see what commands are available to the build script, run:
 # Configuration
 
 - The `etc` directory contains the configuration files and directories that need to be copied to `/etc/cas/config`.
-- The mechanics of the build are controlled for both Apache Maven and Gradle using the `build.properties` file.
+- The specifics of the build are controlled using the `gradle.properties` file.
+
+## Adding Modules
+
+CAS modules may be specified under the `dependencies` block of the [Gradle build script](build.gradle):
+
+```gradle
+dependencies {
+    compile "org.apereo.cas:cas-server-some-module:${project.casVersion}"
+    ...
+}
+```
+
+Study material:
+
+- https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html
+- https://docs.gradle.org/current/userguide/dependency_management.html
+
+## Clear Gradle Cache
+
+If you need to, on Linux/Unix systems, you can delete all the existing artifacts (artifacts and metadata) Gradle has downloaded using:
+
+```bash
+# Only do this when absolutely necessary!
+rm -rf $HOME/.gradle/caches/
+```
+
+Same strategy applies to Windows too, provided you switch `$HOME` to its equivalent in the above command.
 
 # Deployment
 

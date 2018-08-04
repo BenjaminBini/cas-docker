@@ -1,14 +1,5 @@
 #!/bin/bash
 
-while IFS='' read -r line || [[ -n "$line" ]]; do
-	if [ -n "$line" ] && [[ $line != \#* ]] ; then
-		IFS='=' read -r -a array <<< "$line"
-		varName=${array[0]}
-		varValue=${array[1]}
-		export "$varName"="$varValue"
-	fi
-done < ./build.properties
-
 function copy() {
 	echo -e "Creating configuration directory under /etc/cas"
 	mkdir -p /etc/cas/config
@@ -28,7 +19,7 @@ function help() {
 	echo "- https://apereo.github.io/cas"
 	echo "******************************************************************"
 
-	echo -e "Usage: build.sh [maven|gradle] [copy|clean|package|run|dependencies|update|debug|tomcat|gencert]\n"
+	echo -e "Usage: build.sh [copy|clean|package|run|dependencies|update|debug|tomcat|gencert]\n"
 	echo -e "\tclean: \t\tClean Maven build directory"
 	echo -e "\tcli: \t\tRun the CAS command line shell and pass commands"
 	echo -e "\tcopy: \t\tCopy config from the project's local etc/cas/config directory to the root /etc/cas/config"
@@ -45,46 +36,23 @@ function help() {
 }
 
 function clean() {
-	if [ "$buildTool" = "maven" ]; then
-		./mvnw clean "$@"
-	else
-		./gradlew clean "$@"
-	fi
+	./gradlew clean "$@"
 }
 
 function package() {
-	if [ "$buildTool" = "maven" ]; then
-		./mvnw clean package "$@"
-	else
-		./gradlew clean build "$@"
-	fi
+	./gradlew clean build "$@"
 }
 
 function update() {
-	clean
-	if [ "$buildTool" = "maven" ]; then
-		./mvnw package -U "$@"
-	else
-		./gradlew build --refresh-dependencies "$@"
-	fi
+	./gradlew clean build --refresh-dependencies "$@"
 }
 
 function dependencies() {
-	if [ "$buildTool" = "maven" ]; then
-		./mvnw dependency:analyze "$@"
-	else
-		./gradlew allDependencies
-	fi
+	./gradlew allDependencies
 }
 
 function tomcat() {
-	if [ "$buildTool" = "maven" ]; then
-		./mvnw clean package -P external "$@"
-	else
-		./gradlew clean build -Pexternal=true "$@"
-	fi
-
-	pushd ..
+	./gradlew clean build -Pexternal=true "$@"
 
 	if [ ! -f apache-tomcat.zip ]; then
 		wget -O apache-tomcat.zip "http://www-eu.apache.org/dist/tomcat/tomcat-${tomcatVersion}/v${tomcatFullVersion}/bin/apache-tomcat-${tomcatFullVersion}.zip"
@@ -98,83 +66,46 @@ function tomcat() {
     echo "Attempting to shutdown Apache Tomcat..."
     ./apache-tomcat/bin/shutdown.sh 2>/dev/null
 
-	popd
-
-	if [ "$buildTool" = "maven" ]; then
-		cp target/cas.war .../apache-tomcat/webapps/
-	else
-		cp build/libs/cas.war ../apache-tomcat/webapps/
-	fi
-
-	pushd ..
+	cp build/libs/cas.war ../apache-tomcat/webapps/
 	./apache-tomcat/bin/startup.sh
-	popd
 	tail -F ../apache-tomcat/logs/catalina.out
 }
 
 function debug() {
-	if [ "$buildTool" = "maven" ]; then
-		casWar="target/cas.war"
-	else
-		casWar="build/libs/cas.war"
-	fi
+	casWar="build/libs/cas.war"
 	package && java -Xdebug -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=n -jar $casWar
 }
 
 function run() {
-	if [ "$buildTool" = "maven" ]; then
-		casWar="target/cas.war"
-	else
-		casWar="build/libs/cas.war"
-	fi
+	casWar="build/libs/cas.war"
 	package && java -XX:TieredStopAtLevel=1 -Xverify:none -jar $casWar
 }
 
 function runalone() {
-	if [ "$buildTool" = "maven" ]; then
-		./mvnw clean package -P default,exec  "$@"
-		casWar="target/cas.war"
-	else
-		./gradlew clean build -Pexecutable=true "$@"
-		casWar="build/libs/cas.war"
-	fi
+	./gradlew clean build -Pexecutable=true "$@"
+	casWar="build/libs/cas.war"
 	chmod +x $casWar
    	$casWar
 }
 
 function listviews() {
-	explodeapp
-	if [ "$buildTool" = "maven" ]; then
-		explodedDir=target/cas
-	else
-		explodedDir=build/cas
-	fi
+	explodeApp
+	explodedDir=build/cas
 	find $explodedDir -type f -name "*.html" | xargs -n 1 basename | sort | more
 }
 
-function explodeapp() {
-	if [ "$buildTool" = "maven" ]; then
-		if [ ! -d $PWD/target/cas ];then
-			echo "Building the CAS web application and exploding the final war file..."
-			./mvnw clean package war:exploded "$@"
-		fi
-	else
-		./gradlew explodeWar
-	fi
+function explodeApp() {
+	./gradlew explodeWar
 	echo "Exploded the CAS web application file."
 }
 
 function getview() {
-	explodeapp
+	explodeApp
+
 	echo "Searching for view name $@..."
-	if [ "$buildTool" = "maven" ]; then
-		explodedDir=target/cas
-	else
-		explodedDir=build/cas
-	fi
+	explodedDir=build/cas
 
 	results=`find $explodedDir -type f -name "*.html" | grep -i "$@"`
-
 	count=`wc -w <<< "$results"`
 
 	if [ "$count" -eq 0 ];then
@@ -183,11 +114,7 @@ function getview() {
 	fi
 	echo -e "Found view(s): \n$results"
 	if [ "$count" -eq 1 ];then
-		if [ "$buildTool" = "maven" ]; then
-			fromFile="target/cas/WEB-INF/classes"
-		else
-			fromFile="build/cas/WEB-INF/classes"
-		fi
+		fromFile="build/cas/WEB-INF/classes"
 		toFile="src/main/resources"
 
 		overlayfile=`echo "${results/$fromFile/$toFile}"`
@@ -221,12 +148,7 @@ function gencert() {
 
 function cli() {
 	rm -f *.log
-
-	if [ "$buildTool" = "maven" ]; then
-		CAS_VERSION=$(./mvnw -q -Dexec.executable="echo" -Dexec.args='${cas.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec 2>/dev/null)
-	else
-		CAS_VERSION=$(./gradlew casVersion --quiet)
-	fi
+	CAS_VERSION=$(./gradlew casVersion --quiet)
 
 	echo "CAS version: $CAS_VERSION"
 	JAR_FILE_NAME="cas-server-support-shell-${CAS_VERSION}.jar"
@@ -242,11 +164,7 @@ function cli() {
 		exit 0;
 	fi
 
-	if [ "$buildTool" = "maven" ]; then
-		DOWNLOAD_DIR=./target
-	else
-		DOWNLOAD_DIR=./build/libs
-	fi
+	DOWNLOAD_DIR=./build/libs
 
 	COMMAND_FILE="${DOWNLOAD_DIR}/${JAR_FILE_NAME}"
 	if [ ! -f "$COMMAND_FILE" ]; then
@@ -260,27 +178,14 @@ function cli() {
 
 }
 
-if [ "$#" -lt 2 ]; then
-	buildTool=""
-	command=""
-else
-	buildTool=$1
-	command=$2
-fi
+command=$1
 
 if [ -z "$command" ]; then
     echo "No commands provided. Defaulting to [run]"
 	command="run"
 fi
 
-if [ -z "$buildTool" ]; then
-	buildTool="maven"
-	echo "Build tool type is unspecified. Defaulting to [$buildTool]"
-else
-	echo "Using build tool [$buildTool] to [$command] the CAS overlay"
-fi
-
-shift 2
+shift 1
 
 case "$command" in
 "copy")
@@ -289,50 +194,40 @@ case "$command" in
 "help")
     help
     ;;
-*)
-	if [ "$buildTool" = "maven" ]; then
-		pushd maven-overlay
-	else
-		pushd gradle-overlay
-	fi
-
-	case "$command" in
-	"clean")
-		clean "$@"
-		;;
-	"package"|"build")
-		package "$@"
-		;;
-	"debug")
-		debug "$@"
-		;;
-	"run")
-		run "$@"
-		;;
-	"gencert")
-		gencert "$@"
-		;;
-	"cli")
-		cli "$@"
-		;;
-	"update")
-		update "$@"
-		;;
-	"dependencies")
-		update "$@"
-		;;
-	"runalone")
-		runalone "$@"
-		;;
-	"listviews")
-		listviews "$@"
-		;;
-	"getview")
-		getview "$@"
-		;;
-	"tomcat")
-		tomcat
-		;;
-	esac
-	popd
+"clean")
+	clean "$@"
+	;;
+"package"|"build")
+	package "$@"
+	;;
+"debug")
+	debug "$@"
+	;;
+"run")
+	run "$@"
+	;;
+"gencert")
+	gencert "$@"
+	;;
+"cli")
+	cli "$@"
+	;;
+"update")
+	update "$@"
+	;;
+"dependencies")
+	update "$@"
+	;;
+"runalone")
+	runalone "$@"
+	;;
+"listviews")
+	listviews "$@"
+	;;
+"getview")
+	getview "$@"
+	;;
+"tomcat")
+	tomcat
+	;;
 esac
