@@ -1,54 +1,136 @@
 #!/bin/bash
 
-
 function copy() {
 	echo -e "Creating configuration directory under /etc/cas"
 	mkdir -p /etc/cas/config
 
 	echo -e "Copying configuration files from etc/cas to /etc/cas"
-	cp -rfv etc/cas/* /etc/cas
+	cp -rfv ./etc/cas/* /etc/cas
 }
 
 function help() {
-	echo "Usage: build.sh [copy|clean|package|run|debug|bootrun|gencert]"
-	echo "	copy: Copy config from ./etc/cas/config to /etc/cas/config"
-	echo "	clean: Clean Maven build directory"
-	echo "	package: Clean and build CAS war, also call copy"
-	echo "	run: Build and run cas.war via spring boot (java -jar target/cas.war)"
-	echo "	runalone: Build and run cas.war on its own (target/cas.war)"
-	echo "	debug: Run CAS.war and listen for Java debugger on port 5000"
-	echo "	bootrun: Run with maven spring boot plugin, doesn't work with multiple dependencies"
-	echo "	gencert: Create keystore with SSL certificate in location where CAS looks by default"
-	echo "	cli: Run the CAS command line shell and pass commands"
+	clear
+	echo "******************************************************************"
+	tput setaf 2
+	echo "Apereo CAS ${casVersion}"
+	echo "Enterprise Single SignOn for all earthlings and beyond"
+	tput sgr 0
+	echo "- https://github.com/apereo/cas"
+	echo "- https://apereo.github.io/cas"
+	echo "******************************************************************"
+
+	echo -e "Usage: build.sh [copy|clean|package|run|dependencies|update|debug|tomcat|gencert]\n"
+	echo -e "\tclean: \t\tClean Maven build directory"
+	echo -e "\tcli: \t\tRun the CAS command line shell and pass commands"
+	echo -e "\tcopy: \t\tCopy config from the project's local etc/cas/config directory to the root /etc/cas/config"
+	echo -e "\tdebug: \t\tRun cas.war and listen for Java debugger on port 5000"
+	echo -e "\tdependencies: \tGet a report of all dependencies configured in the build"
+	echo -e "\tgencert: \tCreate keystore with SSL certificate in location where CAS looks by default"
+	echo -e "\tgetview: \tAsk for a view name to be included in the overlay for customizations"
+	echo -e "\tlistviews: \tList all CAS views that ship with the web application and can be customized in the overlay"
+	echo -e "\tpackage: \tClean and build CAS war"
+	echo -e "\trun: \t\tBuild and run cas.war via Java as an executable war"
+	echo -e "\trunalone: \tBuild and run cas.war on its own as a standalone executable"
+	echo -e "\ttomcat: \tDeploy the CAS web application to an external Apache Tomcat server"
+	echo -e "\tupdate: \tPackage the CAS overlay by force-updating dependencies and SNAPSHOT versions"
 }
 
 function clean() {
-	./mvnw clean "$@"
+	./gradlew clean "$@"
 }
 
 function package() {
-	./mvnw clean package -T 5 "$@"
-	copy
+	./gradlew clean build "$@"
 }
 
-function bootrun() {
-	./mvnw clean package spring-boot:run -T 5 "$@"
+function update() {
+	./gradlew clean build --refresh-dependencies "$@"
+}
+
+function dependencies() {
+	./gradlew allDependencies
+}
+
+function tomcat() {
+	./gradlew clean build -Pexternal=true "$@"
+
+	if [ ! -f apache-tomcat.zip ]; then
+		wget -O apache-tomcat.zip "http://www-eu.apache.org/dist/tomcat/tomcat-${tomcatVersion}/v${tomcatFullVersion}/bin/apache-tomcat-${tomcatFullVersion}.zip"
+	fi
+	rm -Rf ./apache-tomcat
+	unzip -o apache-tomcat.zip >/dev/null
+	mv apache-tomcat-${tomcatFullVersion} apache-tomcat
+
+	export CATALINA_HOME=./apache-tomcat/
+	chmod +x ./apache-tomcat/bin/*.sh
+    echo "Attempting to shutdown Apache Tomcat..."
+    ./apache-tomcat/bin/shutdown.sh 2>/dev/null
+
+	cp build/libs/cas.war ../apache-tomcat/webapps/
+	./apache-tomcat/bin/startup.sh
+	tail -F ../apache-tomcat/logs/catalina.out
 }
 
 function debug() {
-	package && java -Xdebug -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=n -jar target/cas.war
+	casWar="build/libs/cas.war"
+	package && java -Xdebug -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=n -jar $casWar
 }
 
 function run() {
-	package && java -jar target/cas.war
+	casWar="build/libs/cas.war"
+	package && java -XX:TieredStopAtLevel=1 -Xverify:none -jar $casWar
 }
 
 function runalone() {
-	package && chmod +x target/cas.war && target/cas.war
+	./gradlew clean build -Pexecutable=true "$@"
+	casWar="build/libs/cas.war"
+	chmod +x $casWar
+   	$casWar
+}
+
+function listviews() {
+	explodeApp
+	explodedDir=build/cas
+	find $explodedDir -type f -name "*.html" | xargs -n 1 basename | sort | more
+}
+
+function explodeApp() {
+	./gradlew explodeWar
+	echo "Exploded the CAS web application file."
+}
+
+function getview() {
+	explodeApp
+
+	echo "Searching for view name $@..."
+	explodedDir=build/cas
+
+	results=`find $explodedDir -type f -name "*.html" | grep -i "$@"`
+	count=`wc -w <<< "$results"`
+
+	if [ "$count" -eq 0 ];then
+		echo "No views could be found matching $@"
+		exit 1
+	fi
+	echo -e "Found view(s): \n$results"
+	if [ "$count" -eq 1 ];then
+		fromFile="build/cas/WEB-INF/classes"
+		toFile="src/main/resources"
+
+		overlayfile=`echo "${results/$fromFile/$toFile}"`
+		overlaypath=`dirname "${overlayfile}"`
+		# echo "Overlay file is $overlayfile to be created at $overlaypath"
+		mkdir -p $overlaypath
+		cp $results $overlaypath
+		echo "Created view at $overlayfile"
+		ls $overlayfile
+	else
+		echo "More than one view file is found. Narrow down the search query..."
+	fi
 }
 
 function gencert() {
-	if [[ ! -d /etc/cas ]] ; then 
+	if [[ ! -d /etc/cas ]] ; then
 		copy
 	fi
 	which keytool
@@ -65,74 +147,87 @@ function gencert() {
 }
 
 function cli() {
-	
-	CAS_VERSION=$(./mvnw -q -Dexec.executable="echo" -Dexec.args='${cas.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec 2>/dev/null)
-	# echo "CAS version: $CAS_VERSION"
+	rm -f *.log
+	CAS_VERSION=$(./gradlew casVersion --quiet)
+
+	echo "CAS version: $CAS_VERSION"
 	JAR_FILE_NAME="cas-server-support-shell-${CAS_VERSION}.jar"
-	# echo "JAR name: $JAR_FILE_NAME"
+	echo "JAR name: $JAR_FILE_NAME"
 	JAR_PATH="org/apereo/cas/cas-server-support-shell/${CAS_VERSION}/${JAR_FILE_NAME}"
-	# echo "JAR path: $JAR_PATH"
+	echo "JAR path: $JAR_PATH"
 
 	JAR_FILE_LOCAL="$HOME/.m2/repository/$JAR_PATH";
-	# echo "Local JAR file path: $JAR_FILE_LOCAL";
+	echo "Local JAR file path: $JAR_FILE_LOCAL";
 	if [ -f "$JAR_FILE_LOCAL" ]; then
-		# echo "Using JAR file locally at $JAR_FILE_LOCAL"
+		echo "Using JAR file locally at $JAR_FILE_LOCAL"
 		java -jar $JAR_FILE_LOCAL "$@"
 		exit 0;
 	fi
 
-	DOWNLOAD_DIR=./target
+	DOWNLOAD_DIR=./build/libs
+
 	COMMAND_FILE="${DOWNLOAD_DIR}/${JAR_FILE_NAME}"
 	if [ ! -f "$COMMAND_FILE" ]; then
 		mkdir -p $DOWNLOAD_DIR
-		./mvnw org.apache.maven.plugins:maven-dependency-plugin:3.0.2:get -DgroupId=org.apereo.cas -DartifactId=cas-server-support-shell -Dversion=$CAS_VERSION -Dpackaging=jar -DartifactItem.outputDirectory=$DOWNLOAD_DIR -DremoteRepositories=central::default::http://repo1.maven.apache.org/maven2,snapshots::::https://oss.sonatype.org/content/repositories/snapshots -Dtransitive=false
-		./mvnw org.apache.maven.plugins:maven-dependency-plugin:3.0.2:copy -Dmdep.useBaseVersion=true -Dartifact=org.apereo.cas:cas-server-support-shell:$CAS_VERSION:jar -DoutputDirectory=$DOWNLOAD_DIR
+		wget "https://repo1.maven.org/maven2/${JAR_PATH}" -P ./target
 	fi
+
+	echo "Running $COMMAND_FILE"
 	java -jar $COMMAND_FILE "$@"
 	exit 0;
 
 }
 
-if [ $# -eq 0 ]; then
-    echo -e "No commands provided. Defaulting to [run]\n"
-    run
-    exit 0
+command=$1
+
+if [ -z "$command" ]; then
+    echo "No commands provided. Defaulting to [run]"
+	command="run"
 fi
 
+shift 1
 
-case "$1" in
+case "$command" in
 "copy")
-    copy 
+    copy
     ;;
-"clean")
-	shift
-    clean "$@"
-    ;;   
-"package")
-	shift
-    package "$@"
-    ;;
-"bootrun")
-	shift
-    bootrun "$@"
-    ;;
-"debug")
-    debug "$@"
-    ;;
-"run")
-    run "$@"
-    ;;
-"runalone")
-    runalone "$@"
-    ;;
-"gencert")
-    gencert "$@"
-    ;;
-"cli")
-    shift
-    cli "$@"
-    ;;
-*)
+"help")
     help
     ;;
+"clean")
+	clean "$@"
+	;;
+"package"|"build")
+	package "$@"
+	;;
+"debug")
+	debug "$@"
+	;;
+"run")
+	run "$@"
+	;;
+"gencert")
+	gencert "$@"
+	;;
+"cli")
+	cli "$@"
+	;;
+"update")
+	update "$@"
+	;;
+"dependencies")
+	update "$@"
+	;;
+"runalone")
+	runalone "$@"
+	;;
+"listviews")
+	listviews "$@"
+	;;
+"getview")
+	getview "$@"
+	;;
+"tomcat")
+	tomcat
+	;;
 esac
