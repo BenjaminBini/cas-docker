@@ -78,9 +78,9 @@ bootRun {
 
 dependencies {
     if (project.hasProperty("external")) {
-        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${project.casVersion}@war"
+        compile "org.apereo.cas:cas-server-webapp:${project.casVersion}"
     } else {
-        compile "org.apereo.cas:cas-server-webapp:${project.casVersion}@war"
+        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${project.casVersion}"
     }
     // Other dependencies may be listed here...
 }
