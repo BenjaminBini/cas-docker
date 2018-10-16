@@ -76,6 +76,11 @@ bootRun {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+wrapper {
+    distributionType = Wrapper.DistributionType.BIN
+    gradleVersion = "${project.gradleVersion}"
+}
+
 dependencies {
     if (project.hasProperty("external")) {
         compile "org.apereo.cas:cas-server-webapp:${project.casVersion}"
@@ -120,10 +125,6 @@ task debug(group: "build", description: "Debug the CAS web application in embedd
     }
 }
 
-task wrapper(type: Wrapper, description: "Update the Gradle wrapper") {
-    gradleVersion = "${project.gradleVersion}"
-}
-
 task casVersion(group: "build", description: "Display the current CAS version") {
     doFirst {
         println "${project.casVersion}"
@@ -135,6 +136,11 @@ task showConfiguration(group: "build", description: "Show configurations for eac
         def cfg = project.hasProperty("configuration") ? project.property("configuration") : "compile"
         configurations.getByName(cfg).each { println it }
     }
+}
+
+task updateWrapper(description: "Update the Gradle wrapper") {
+    println "Updating gradle wrapper to version specified in gradle.properties: ${project.gradleVersion}"
+    dependsOn wrapper
 }
 
 task allDependenciesInsight(type: DependencyInsightReportTask, description: "Produce insight information for all dependencies") {}
