@@ -2,6 +2,7 @@ buildscript {
     repositories {
         mavenLocal()
         jcenter()
+        maven { url "https://repo.spring.io/libs-milestone" }
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.springBootVersion}"
@@ -14,6 +15,8 @@ repositories {
     jcenter()
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     maven { url 'https://build.shibboleth.net/nexus/content/repositories/releases/' }
+    maven { url "https://repo.spring.io/milestone/" }
+    maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local" }
 }
 
 apply from: "https://dl.bintray.com/scalding/generic/waroverlay.gradle"
@@ -75,9 +78,9 @@ bootRun {
 
 dependencies {
     if (project.hasProperty("external")) {
-        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${project.casVersion}@war"
+        compile "org.apereo.cas:cas-server-webapp:${project.casVersion}"
     } else {
-        compile "org.apereo.cas:cas-server-webapp:${project.casVersion}@war"
+        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${project.casVersion}"
     }
     // Other dependencies may be listed here...
 }
