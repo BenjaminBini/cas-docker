@@ -44,11 +44,8 @@ idea {
 }
 
 war {
-    entryCompression = ZipEntryCompression.STORED
-}
-
-warOverlay {
     includeWarJars = true
+    entryCompression = ZipEntryCompression.STORED
 }
 
 springBoot {
