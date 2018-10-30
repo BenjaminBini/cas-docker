@@ -26,14 +26,6 @@ apply plugin: "org.springframework.boot"
 apply plugin: "eclipse"
 apply plugin: "idea"
 
-def currentBranch = "master"
-def currentVersion = "$System.env.casVersion"
-if (!currentVersion.contains("RC")) {
-    def matcher = currentVersion =~ /(\d+\.\d+\.).+/
-    if (matcher.find()) {
-        currentBranch = matcher.group(1) + "x"
-    }
-}
 
 eclipse {
     classpath {
@@ -81,9 +73,9 @@ wrapper {
 
 dependencies {
     if (project.hasProperty("external")) {
-        compile "org.apereo.cas:cas-server-webapp:${project.casVersion}"
+        compile "org.apereo.cas:cas-server-webapp:${project.'cas.version'}"
     } else {
-        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${project.casVersion}"
+        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${project.'cas.version'}"
     }
     // Other dependencies may be listed here...
 }
@@ -97,10 +89,9 @@ task explodeWar(type: Copy, group: "build", description: "Explodes the cas.war")
 task run(group: "build", description: "Run the CAS web application in embedded container mode") {
     dependsOn build
     doLast {
-        def args = "-Xmx2048M -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"
-        def casRunArgs = Arrays.asList(args.split(" "))
+        def casRunArgs = Arrays.asList("-Xmx2048M ".split(" "))
         javaexec {
-            main = "-jar";
+            main = "-jar"
             jvmArgs = casRunArgs
             args = ["build/libs/cas.war"]
             logger.info "Started ${commandLine}"
@@ -111,13 +102,11 @@ task run(group: "build", description: "Run the CAS web application in embedded c
 task debug(group: "build", description: "Debug the CAS web application in embedded mode on port 5000") {
     dependsOn build
     doLast {
-        def casDebugArgs = Arrays.asList("-Xmx2048M".split(" "))
-
+        def casDebugArgs = Arrays.asList("-Xmx2048M -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y".split(" "))
         javaexec {
-            main = "-jar";
+            main = "-jar"
             jvmArgs = casDebugArgs
             args = ["build/libs/cas.war"]
-
             logger.info "Started ${commandLine}"
         }
     }
@@ -125,7 +114,7 @@ task debug(group: "build", description: "Debug the CAS web application in embedd
 
 task casVersion(group: "build", description: "Display the current CAS version") {
     doFirst {
-        println "${project.casVersion}"
+        println "${project.'cas.version'}"
     }
 }
 
