@@ -184,7 +184,9 @@ task showConfiguration(group: "build", description: "Show configurations for eac
 }
 
 task updateWrapper(description: "Update the Gradle wrapper") {
-    println "Updating gradle wrapper to version specified in gradle.properties: ${project.gradleVersion}"
+    doFirst {
+        println "Updating gradle wrapper to version specified in gradle.properties: ${project.gradleVersion}"
+    }
     dependsOn wrapper
 }
 
