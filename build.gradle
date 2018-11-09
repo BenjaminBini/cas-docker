@@ -3,11 +3,13 @@ buildscript {
         mavenLocal()
         jcenter()
         maven { url "https://repo.spring.io/libs-milestone" }
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.springBootVersion}"
-        classpath 'de.undercouch:gradle-download-task:3.4.3' // used to download CAS shell
-        classpath 'org.apache.ivy:ivy:2.4.0' // used to download CAS shell from snapshot repo
+        classpath "de.undercouch:gradle-download-task:3.4.3" // used to download CAS shell
+        classpath "org.apache.ivy:ivy:2.4.0" // used to download CAS shell from snapshot repo
+        classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:0.10.0"
     }
 }
 
@@ -15,19 +17,28 @@ repositories {
     mavenLocal()
     mavenCentral()
     jcenter()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url 'https://build.shibboleth.net/nexus/content/repositories/releases/' }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    maven { url "https://build.shibboleth.net/nexus/content/repositories/releases/" }
     maven { url "https://repo.spring.io/milestone/" }
     maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local" }
 }
 
 apply from: "https://dl.bintray.com/scalding/generic/waroverlay.gradle"
 
+
 apply plugin: "war"
 apply plugin: "org.springframework.boot"
 apply plugin: "eclipse"
 apply plugin: "idea"
-apply plugin: 'de.undercouch.download'
+apply plugin: "de.undercouch.download"
+apply plugin: "com.google.cloud.tools.jib"
+
+def casServerVersion = project.'cas.version'
+def casWebApplicationBinaryName = "cas.war"
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
 
 eclipse {
     classpath {
@@ -53,12 +64,12 @@ springBoot {
 }
 
 bootWar {
-	if (project.hasProperty('executable')) {
+	if (project.hasProperty("executable")) {
     	launchScript()
 	}
 
-	archiveName 'cas.war'
-    baseName 'cas'
+	archiveName "${casWebApplicationBinaryName}"
+    baseName "cas"
 
     excludeDevtools = false
 }
@@ -75,16 +86,64 @@ wrapper {
 
 dependencies {
     if (project.hasProperty("external")) {
-        compile "org.apereo.cas:cas-server-webapp:${project.'cas.version'}"
+        compile "org.apereo.cas:cas-server-webapp:${casServerVersion}"
     } else {
-        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${project.'cas.version'}"
+        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}"
     }
     // Other dependencies may be listed here...
 }
 
-task explodeWar(type: Copy, group: "build", description: "Explodes the cas.war") {
+jib {
+    from {
+        image = "adoptopenjdk/openjdk11:jdk11-alpine-nightly-slim"
+    }
+    to {
+        image = "${project.group}/${project.name}"
+        /**
+         ecr-login: Amazon Elastic Container Registry (ECR)
+         gcr: Google Container Registry (GCR)
+         osxkeychain: Docker Hub
+         */
+        credHelper = "osxkeychain"
+        /*
+        auth {
+            username = "*******"
+            password = "*******"
+        }
+        tags = [casServerVersion]
+        */
+    }
+    container {
+        entrypoint = ['docker/entrypoint.sh']
+        ports = ['80', '443', '8080', '8443']
+        labels = [version:casServerVersion, name:project.name, group:project.group]
+    }
+    extraDirectory {
+        path = file('src/main/jib')
+        permissions = [
+            '/docker/entrypoint.sh': '755'
+        ]
+    }
+}
+
+
+task copyWebAppIntoJib(type: Copy, group: "build") {
     dependsOn build
-    from zipTree("build/libs/cas.war")
+    from "build/libs/${casWebApplicationBinaryName}"
+    into "src/main/jib/docker/cas"
+}
+
+task deleteWebAppFromJib(type: Delete, group: "build") {
+    delete "src/main/jib/docker/cas"
+}
+
+tasks.findByName("jibDockerBuild")
+        .dependsOn(copyWebAppIntoJib)
+        .finalizedBy(deleteWebAppFromJib)
+
+task explodeWar(type: Copy, group: "build", description: "Explodes the CAS web application archive") {
+    dependsOn build
+    from zipTree("build/libs/${casWebApplicationBinaryName}")
     into "${buildDir}/cas"
 }
 
@@ -95,7 +154,7 @@ task run(group: "build", description: "Run the CAS web application in embedded c
         javaexec {
             main = "-jar"
             jvmArgs = casRunArgs
-            args = ["build/libs/cas.war"]
+            args = ["build/libs/${casWebApplicationBinaryName}"]
             logger.info "Started ${commandLine}"
         }
     }
@@ -109,47 +168,40 @@ task debug(group: "build", description: "Debug the CAS web application in embedd
             main = "-jar"
             jvmArgs = casArgs
             debug = true
-            args = ["build/libs/cas.war"]
+            args = ["build/libs/${casWebApplicationBinaryName}"]
             logger.info "Started ${commandLine}"
         }
     }
 }
 
-task casVersion(group: "build", description: "Display the current CAS version") {
+task downloadShell (group: "shell", description: "Download CAS shell jar from snapshot or release maven repo") {
     doFirst {
-        println "${project.'cas.version'}"
+        mkdir "${project.shellDir}"
     }
-}
-
-task downloadShell (description: "Download CAS shell jar from snapshot or release maven repo") {
     doLast {
-        def downloadFile 
-        if ("${project.'cas.version'}".contains("SNAPSHOT")) {
-            def snapshotDir = "https://oss.sonatype.org/content/repositories/snapshots/org/apereo/cas/cas-server-support-shell/${project.'cas.version'}/"
+        def downloadFile
+        if (isRunningCasServerSnapshot()) {
+            def snapshotDir = "https://oss.sonatype.org/content/repositories/snapshots/org/apereo/cas/cas-server-support-shell/${casServerVersion}/"
             def files = new org.apache.ivy.util.url.ApacheURLLister().listFiles(new URL(snapshotDir))
             files = files.sort{it.path}
             files.each {
-                if (it.path.endsWith('.jar')) {
+                if (it.path.endsWith(".jar")) {
                     downloadFile = it
                 }
             }
         } else {
-            downloadFile = "https://repo1.maven.org/maven2/org/apereo/cas/cas-server-support-shell/${project.'cas.version'}/cas-server-support-shell-${project.'cas.version'}.jar"
+            downloadFile = "https://repo1.maven.org/maven2/org/apereo/cas/cas-server-support-shell/${casServerVersion}/cas-server-support-shell-${casServerVersion}.jar"
         }
-        println ("Downloading file: ${downloadFile}")
+        println "Downloading file: ${downloadFile}"
         download {
             src downloadFile
-            dest new File("${project.shellDir}", "cas-server-support-shell-${project.'cas.version'}.jar")
+            dest new File("${project.shellDir}", "cas-server-support-shell-${casServerVersion}.jar")
             overwrite false
         }
     }
 }
 
-downloadShell.doFirst {
-    mkdir "${project.shellDir}"
-}
-
-task runShell (description: "Run the CAS shell") {
+task runShell (group: "shell",  description: "Run the CAS shell") {
     dependsOn downloadShell
     doLast {
         def casShellArgs = Arrays.asList("-Xmx1500M".split(" "))
@@ -157,12 +209,12 @@ task runShell (description: "Run the CAS shell") {
             main = "-jar"
             jvmArgs = casShellArgs
             standardInput = System.in
-            args = ["${project.shellDir}/cas-server-support-shell-${project.'cas.version'}.jar", "--shell"]
+            args = ["${project.shellDir}/cas-server-support-shell-${casServerVersion}.jar", "--shell"]
         }
     }
 }
 
-task debugShell (description: "Run the CAS shell with debug options, wait for debugger on port 5005") {
+task debugShell (group: "shell", description: "Run the CAS shell with debug options, wait for debugger on port 5005") {
     dependsOn downloadShell
     doLast {
         def casArgs = Arrays.asList("-Xmx1500M ".split(" "))
@@ -171,7 +223,7 @@ task debugShell (description: "Run the CAS shell with debug options, wait for de
             jvmArgs = casArgs
             debug = true
             standardInput = System.in
-            args = ["${project.shellDir}/cas-server-support-shell-${project.'cas.version'}.jar", "--shell"]
+            args = ["${project.shellDir}/cas-server-support-shell-${casServerVersion}.jar", "--shell"]
         }
     }
 }
@@ -183,12 +235,14 @@ task showConfiguration(group: "build", description: "Show configurations for eac
     }
 }
 
-task updateWrapper(description: "Update the Gradle wrapper") {
-    doFirst {
-        println "Updating gradle wrapper to version specified in gradle.properties: ${project.gradleVersion}"
-    }
-    dependsOn wrapper
+task allDependenciesInsight(group: "build", type: DependencyInsightReportTask, description: "Produce insight information for all dependencies") {}
+
+task allDependencies(group: "build", type: DependencyReportTask, description: "Display a graph of all project dependencies") {}
+
+task casVersion (group: "build", description: "Display the current CAS version") {
+    doFirst { println casServerVersion }
 }
 
-task allDependenciesInsight(type: DependencyInsightReportTask, description: "Produce insight information for all dependencies") {}
-task allDependencies(type: DependencyReportTask, description: "Display a graph of all project dependencies") {}
+def isRunningCasServerSnapshot() {
+    return "${casServerVersion}".contains("-SNAPSHOT")
+}
