@@ -4,7 +4,7 @@
     <Properties>
         <Property name="baseDir">/var/log</Property>
 
-        <Property name="cas.log.level">warn</Property>
+        <Property name="cas.log.level">info</Property>
         <Property name="spring.webflow.log.level">warn</Property>
         <Property name="spring.security.log.level">info</Property>
         <Property name="spring.cloud.log.level">warn</Property>
@@ -17,7 +17,7 @@
     </Properties>
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d %p [%c] - &lt;%m&gt;%n"/>
+            <PatternLayout pattern="%highlight{%d %p [%c] - &lt;%m&gt;}%n"/>
         </Console>
         <RollingFile name="file" fileName="${baseDir}/cas.log" append="true"
                      filePattern="${baseDir}/cas-%d{yyyy-MM-dd-HH}-%i.log">

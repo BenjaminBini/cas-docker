@@ -126,10 +126,15 @@ jib {
     }
 }
 
-
 task copyWebAppIntoJib(type: Copy, group: "build") {
     dependsOn build
     from "build/libs/${casWebApplicationBinaryName}"
+    into "src/main/jib/docker/cas/war"
+}
+
+task copyConfigIntoJib(type: Copy, group: "build") {
+    dependsOn build
+    from "etc/cas"
     into "src/main/jib/docker/cas"
 }
 
@@ -138,7 +143,7 @@ task deleteWebAppFromJib(type: Delete, group: "build") {
 }
 
 tasks.findByName("jibDockerBuild")
-        .dependsOn(copyWebAppIntoJib)
+        .dependsOn(copyWebAppIntoJib, copyConfigIntoJib)
         .finalizedBy(deleteWebAppFromJib)
 
 task explodeWar(type: Copy, group: "build", description: "Explodes the CAS web application archive") {
