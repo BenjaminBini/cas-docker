@@ -25,6 +25,7 @@ function help() {
 	echo -e "\tcopy: \t\tCopy config from the project's local etc/cas/config directory to the root /etc/cas/config"
 	echo -e "\tdebug: \t\tRun cas.war and listen for Java debugger on port 5000"
 	echo -e "\tdependencies: \tGet a report of all dependencies configured in the build"
+	echo -e "\tdocker: \tBuild a Docker image based on the current build and configuration"
 	echo -e "\tgencert: \tCreate keystore with SSL certificate in location where CAS looks by default"
 	echo -e "\tgetview: \tAsk for a view name to be included in the overlay for customizations"
 	echo -e "\tlistviews: \tList all CAS views that ship with the web application and can be customized in the overlay"
@@ -86,6 +87,10 @@ function runalone() {
 	casWar="build/libs/cas.war"
 	chmod +x $casWar
    	$casWar
+}
+
+function jibdocker() {
+   ./gradlew clean build jibDockerBuild "$@"
 }
 
 function listviews() {
@@ -205,6 +210,9 @@ case "$command" in
 	;;
 "run")
 	run "$@"
+	;;
+"docker")
+	jibdocker "$@"
 	;;
 "gencert")
 	gencert "$@"
