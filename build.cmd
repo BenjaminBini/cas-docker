@@ -5,6 +5,7 @@
 @set CONFIG_DIR=\etc\cas\config
 @set SHELL_DIR=build\libs
 @set BUILD_DIR=build\libs
+@set DOCKER_ORG=org.apereo.cas
 @if "%PROFILES%" == "" @set PROFILES=standalone
 
 @rem Call this script with DNAME and CERT_SUBJ_ALT_NAMES already set to override
@@ -36,6 +37,8 @@
 @if "%1" == "dependencies" call:dependencies
 @if "%1" == "dockerimage" call:dockerimage
 @if "%1" == "dockerrun" call:dockerrun
+@if "%1" == "dockerrunsh" call:dockerrunsh
+@if "%1" == "dockerexecsh" call:dockerexecsh
 
 @rem function section starts here
 @goto :EOF
@@ -49,7 +52,7 @@
 @goto :EOF
 
 :help
-    @echo "Usage: build.cmd [copy|clean|package|refresh|run|debug|gencert|dockerimage|dockerrun] [optional extra args for gradle]"
+    @echo "Usage: build.cmd [copy|clean|package|refresh|run|debug|gencert|dockerimage|dockerrunsh|dockerexecsh] [optional extra args for gradle]"
     @echo "To get started on a clean system, run 'build.cmd gencert && build.cmd copy && build.cmd run'"
     @echo "Note that using the copy or gencert arguments will create and/or overwrite the %CAS_DIR% which is outside this project"
 @goto :EOF
@@ -83,8 +86,19 @@
 :dockerrun
     docker stop cas
     docker rm cas
-    docker run --name cas org.apereo.cas/cas:latest 
+    docker run --name cas %DOCKER_ORG%/cas:latest
 @goto :EOF
+
+:dockerrunsh
+    @rem run image to look around, delete container on exit
+    docker run --rm -it --entrypoint /bin/sh %DOCKER_ORG%/cas:latest
+@goto :EOF
+
+:dockerexecsh
+    @rem exec into runing container to look around, run jstack, check config, etc
+    docker exec -it cas /bin/sh
+@goto :EOF
+
 
 :gencert
     where /q keytool
