@@ -34,6 +34,8 @@
 @if "%1" == "cli" call:cli
 @if "%1" == "debugcli" call:debugcli
 @if "%1" == "dependencies" call:dependencies
+@if "%1" == "dockerimage" call:dockerimage
+@if "%1" == "dockerrun" call:dockerrun
 
 @rem function section starts here
 @goto :EOF
@@ -47,7 +49,7 @@
 @goto :EOF
 
 :help
-    @echo "Usage: build.cmd [copy|clean|package|refresh|run|debug|gencert] [optional extra args for gradle]"
+    @echo "Usage: build.cmd [copy|clean|package|refresh|run|debug|gencert|dockerimage|dockerrun] [optional extra args for gradle]"
     @echo "To get started on a clean system, run 'build.cmd gencert && build.cmd copy && build.cmd run'"
     @echo "Note that using the copy or gencert arguments will create and/or overwrite the %CAS_DIR% which is outside this project"
 @goto :EOF
@@ -72,6 +74,16 @@
 
 :refresh
     call:package --refresh-dependencies %1 %2
+@goto :EOF
+
+:dockerimage
+    call %GRADLE_CMD% clean build jibDockerBuild
+@goto :EOF
+
+:dockerrun
+    docker stop cas
+    docker rm cas
+    docker run --name cas org.apereo.cas/cas:latest 
 @goto :EOF
 
 :gencert
