@@ -19,7 +19,7 @@ function help() {
 	echo "- https://apereo.github.io/cas"
 	echo "******************************************************************"
 
-	echo -e "Usage: build.sh [copy|clean|package|run|dependencies|docker|update|debug|tomcat|gencert]\n"
+	echo -e "Usage: build.sh [copy|clean|package|run|dependencies|docker|getview|listviews|update|debug|tomcat|gencert]\n"
 	echo -e "\tclean: \t\tClean Maven build directory"
 	echo -e "\tcli: \t\tRun the CAS command line shell and pass commands"
 	echo -e "\tcopy: \t\tCopy config from the project's local etc/cas/config directory to the root /etc/cas/config"
