@@ -19,7 +19,8 @@ function help() {
 	echo "- https://apereo.github.io/cas"
 	echo "******************************************************************"
 
-	echo -e "Usage: build.sh [copy|clean|package|run|dependencies|docker|getview|listviews|update|debug|tomcat|gencert]\n"
+	echo -e "Usage: build.sh [command]\n"
+	echo -e "\tThe following commands are available:\n"
 	echo -e "\tclean: \t\tClean Maven build directory"
 	echo -e "\tcli: \t\tRun the CAS command line shell and pass commands"
 	echo -e "\tcopy: \t\tCopy config from the project's local etc/cas/config directory to the root /etc/cas/config"
@@ -30,6 +31,7 @@ function help() {
 	echo -e "\tgetview: \tAsk for a view name to be included in the overlay for customizations"
 	echo -e "\tlistviews: \tList all CAS views that ship with the web application and can be customized in the overlay"
 	echo -e "\tpackage: \tClean and build CAS war"
+	echo -e "\texplode: \tExplode and unzip and packaged CAS war"
 	echo -e "\trun: \t\tBuild and run cas.war via Java as an executable war"
 	echo -e "\trunalone: \tBuild and run cas.war on its own as a standalone executable"
 	echo -e "\ttomcat: \tDeploy the CAS web application to an external Apache Tomcat server"
@@ -100,8 +102,8 @@ function listviews() {
 }
 
 function explodeApp() {
-	./gradlew explodeWar
-	echo "Exploded the CAS web application file."
+	./gradlew clean explodeWar
+	echo "Exploded the CAS web application file at build/cas"
 }
 
 function getview() {
@@ -211,6 +213,9 @@ case "$command" in
 "run")
 	run "$@"
 	;;
+"explode")
+	explodeApp "$@"
+	;;	
 "docker")
 	jibdocker "$@"
 	;;
