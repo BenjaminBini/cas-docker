@@ -29,6 +29,7 @@ function help() {
 	echo -e "\tdocker: \tBuild a Docker image based on the current build and configuration"
 	echo -e "\tgencert: \tCreate keystore with SSL certificate in location where CAS looks by default"
 	echo -e "\tgetview: \tAsk for a view name to be included in the overlay for customizations"
+	echo -e "\tgetresource: \tAsk for a resource name (properties/json/etc file) to be included in the overlay for customizations"
 	echo -e "\tlistviews: \tList all CAS views that ship with the web application and can be customized in the overlay"
 	echo -e "\tpackage: \tClean and build CAS war"
 	echo -e "\texplode: \tExplode and unzip and packaged CAS war"
@@ -102,8 +103,38 @@ function listviews() {
 }
 
 function explodeApp() {
-	./gradlew clean explodeWar
+	./gradlew explodeWar
 	echo "Exploded the CAS web application file at build/cas"
+}
+
+function getresource() {
+	explodeApp
+
+	echo "Searching for resource name $@..."
+	explodedDir=build/cas
+
+	results=`find $explodedDir -type f -name "*.*" | grep -i "$@"`
+	count=`wc -w <<< "$results"`
+
+	if [ "$count" -eq 0 ];then
+		echo "No resources could be found matching $@"
+		exit 1
+	fi
+	echo -e "Found resource(s): \n$results"
+	if [ "$count" -eq 1 ];then
+		fromFile="build/cas/WEB-INF/classes"
+		toFile="src/main/resources"
+
+		overlayfile=`echo "${results/$fromFile/$toFile}"`
+		overlaypath=`dirname "${overlayfile}"`
+		# echo "Overlay file is $overlayfile to be created at $overlaypath"
+		mkdir -p $overlaypath
+		cp $results $overlaypath
+		echo "Created resource at $overlayfile"
+		ls $overlayfile
+	else
+		echo "More than one resource file is found. Narrow down the search query..."
+	fi
 }
 
 function getview() {
@@ -239,6 +270,9 @@ case "$command" in
 	;;
 "getview")
 	getview "$@"
+	;;
+"getresource")
+	getresource "$@"
 	;;
 "tomcat")
 	tomcat
