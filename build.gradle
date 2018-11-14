@@ -95,7 +95,7 @@ dependencies {
 
 jib {
     from {
-        image = "adoptopenjdk/openjdk11:jdk11-alpine-nightly-slim"
+        image = project.baseDockerImage
     }
     to {
         image = "${project.group}/${project.name}"
