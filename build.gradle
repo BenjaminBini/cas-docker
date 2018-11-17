@@ -186,7 +186,7 @@ task downloadShell (group: "shell", description: "Download CAS shell jar from sn
     }
     doLast {
         def downloadFile
-        if (isRunningCasServerSnapshot()) {
+        if (isRunningCasServerSnapshot(casServerVersion)) {
             def snapshotDir = "https://oss.sonatype.org/content/repositories/snapshots/org/apereo/cas/cas-server-support-shell/${casServerVersion}/"
             def files = new org.apache.ivy.util.url.ApacheURLLister().listFiles(new URL(snapshotDir))
             files = files.sort{it.path}
@@ -249,6 +249,6 @@ task casVersion (group: "build", description: "Display the current CAS version")
     doFirst { println casServerVersion }
 }
 
-def isRunningCasServerSnapshot() {
+def isRunningCasServerSnapshot(casServerVersion) {
     return "${casServerVersion}".contains("-SNAPSHOT")
 }
