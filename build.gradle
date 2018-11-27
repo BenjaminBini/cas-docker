@@ -7,9 +7,9 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.springBootVersion}"
-        classpath "de.undercouch:gradle-download-task:3.4.3" // used to download CAS shell
-        classpath "org.apache.ivy:ivy:2.4.0" // used to download CAS shell from snapshot repo
-        classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:0.10.0"
+        classpath "de.undercouch:gradle-download-task:${project.gradleDownloadTaskVersion}" // used to download CAS shell
+        classpath "org.apache.ivy:ivy:${project.ivyVersion}" // used to download CAS shell from snapshot repo
+        classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:${project.jibVersion}"
     }
 }
 
