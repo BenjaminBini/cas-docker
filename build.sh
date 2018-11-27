@@ -94,7 +94,6 @@ function listviews() {
 
 function explodeApp() {
 	./gradlew explodeWar
-	echo "Exploded the CAS web application file at build/cas"
 }
 
 function getresource() {
@@ -128,33 +127,7 @@ function getresource() {
 }
 
 function getview() {
-	explodeApp
-
-	echo "Searching for view name $@..."
-	explodedDir=build/cas
-
-	results=`find $explodedDir -type f -name "*.html" | grep -i "$@"`
-	count=`wc -w <<< "$results"`
-
-	if [ "$count" -eq 0 ];then
-		echo "No views could be found matching $@"
-		exit 1
-	fi
-	echo -e "Found view(s): \n$results"
-	if [ "$count" -eq 1 ];then
-		fromFile="build/cas/WEB-INF/classes"
-		toFile="src/main/resources"
-
-		overlayfile=`echo "${results/$fromFile/$toFile}"`
-		overlaypath=`dirname "${overlayfile}"`
-		# echo "Overlay file is $overlayfile to be created at $overlaypath"
-		mkdir -p $overlaypath
-		cp $results $overlaypath
-		echo "Created view at $overlayfile"
-		ls $overlayfile
-	else
-		echo "More than one view file is found. Narrow down the search query..."
-	fi
+	./gradlew getTemplateView -PviewName="$@"
 }
 
 function gencert() {
