@@ -126,7 +126,7 @@ case "$command" in
 	;;
 "explode")
 	explodeApp "$@"
-	;;	
+	;;
 "docker")
 	jibdocker "$@"
 	;;

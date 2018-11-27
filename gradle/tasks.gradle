@@ -17,7 +17,7 @@ buildscript {
 apply plugin: 'de.undercouch.download'
 apply plugin: 'com.boazj.log'
 
-def tomcatDirectory = "${buildDir}/apache-tomcat-${tomcatFullVersion}"
+def tomcatDirectory = "${buildDir}/apache-tomcat-${tomcatVersion}"
 
 task copyCasConfiguration(type: Copy, group: "build", description: "Copy the CAS configuration from this project to /etc/cas/config") {
     from "etc/cas/config"
@@ -246,9 +246,9 @@ def isRunningCasServerSnapshot(casServerVersion) {
     return "${casServerVersion}".contains("-SNAPSHOT")
 }
 
-
 task downloadTomcat(type: Download) {
-    def downloadFile = "https://www.apache.org/dist/tomcat/tomcat-${tomcatVersion}/v${tomcatFullVersion}/bin/apache-tomcat-${tomcatFullVersion}.zip"
+    def tomcatMajorVersion = "${tomcatVersion}".substring(0, "${tomcatVersion}".indexOf("."))
+    def downloadFile = "https://www.apache.org/dist/tomcat/tomcat-${tomcatMajorVersion}/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}.zip"
     logger.info "Downloading file $downloadFile"
     src downloadFile
     dest new File("apache-tomcat.zip")
