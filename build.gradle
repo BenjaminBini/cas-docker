@@ -371,6 +371,41 @@ task getTemplateView(group: "build", description: "Fetch a CAS views and move it
     }
 }
 
+task getResource(group: "build", description: "Fetch a CAS resource and move it into the overlay") {
+    dependsOn explodeWar
+
+    doFirst {
+        def explodedDir="${buildDir}/cas"
+        def resourceName = project.getProperty("resourceName")
+
+        def results = fileTree(explodedDir).matching {
+            include "**/${resourceName}.html"
+        }
+        if (results.isEmpty()) {
+            println "No resources could be found matching ${resourceName}"
+            return
+        }
+        if (results.size() > 1) {
+            println "Multiple resources found matching ${resourceName}: ${results}"
+            return
+        }
+
+        def fromFile = explodedDir + "/WEB-INF/classes"
+        def resourcesDir = "src/main/resources"
+        mkdir resourcesDir
+
+        def resourceFile = results[0].canonicalPath
+        def toResourceFile = resourceFile.replace(fromFile, resourcesDir)
+
+        def parent = file(toResourceFile).getParent()
+        mkdir parent
+
+        Files.copy(Paths.get(resourceFile), Paths.get(toResourceFile), StandardCopyOption.REPLACE_EXISTING)
+        println "Copied file to ${toViewFile}"
+    }
+}
+
+
 def isRunningCasServerSnapshot(casServerVersion) {
     return "${casServerVersion}".contains("-SNAPSHOT")
 }

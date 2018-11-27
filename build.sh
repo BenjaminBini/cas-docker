@@ -97,33 +97,7 @@ function explodeApp() {
 }
 
 function getresource() {
-	explodeApp
-
-	echo "Searching for resource name $@..."
-	explodedDir=build/cas
-
-	results=`find $explodedDir -type f -name "*.*" | grep -i "$@"`
-	count=`wc -w <<< "$results"`
-
-	if [ "$count" -eq 0 ];then
-		echo "No resources could be found matching $@"
-		exit 1
-	fi
-	echo -e "Found resource(s): \n$results"
-	if [ "$count" -eq 1 ];then
-		fromFile="build/cas/WEB-INF/classes"
-		toFile="src/main/resources"
-
-		overlayfile=`echo "${results/$fromFile/$toFile}"`
-		overlaypath=`dirname "${overlayfile}"`
-		# echo "Overlay file is $overlayfile to be created at $overlaypath"
-		mkdir -p $overlaypath
-		cp $results $overlaypath
-		echo "Created resource at $overlayfile"
-		ls $overlayfile
-	else
-		echo "More than one resource file is found. Narrow down the search query..."
-	fi
+	./gradlew getResource -PresourceName="$@"
 }
 
 function getview() {
