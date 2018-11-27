@@ -127,6 +127,14 @@ jib {
     }
 }
 
+task copyCasConfiguration(type: Copy, group: "build") {
+    from "etc/cas/config"
+    into "/etc/cas/config"
+    doFirst {
+        mkdir "/etc/cas/config"
+    }
+}
+
 task copyWebAppIntoJib(type: Copy, group: "build") {
     dependsOn build
     from "build/libs/${casWebApplicationBinaryName}"

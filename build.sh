@@ -1,11 +1,7 @@
 #!/bin/bash
 
 function copy() {
-	echo -e "Creating configuration directory under /etc/cas"
-	mkdir -p /etc/cas/config
-
-	echo -e "Copying configuration files from etc/cas to /etc/cas"
-	cp -rfv ./etc/cas/* /etc/cas
+	./gradlew copyCasConfiguration "$@"
 }
 
 function help() {
