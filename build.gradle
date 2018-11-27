@@ -337,40 +337,6 @@ task listTemplateViews (group: "build", description: "List all CAS views") {
     }
 }
 
-task getTemplateView(group: "build", description: "Fetch a CAS views and move it into the overlay") {
-    dependsOn explodeWar
-
-    doFirst {
-        def explodedDir="${buildDir}/cas"
-        def viewName = project.getProperty("viewName")
-
-        def results = fileTree(explodedDir).matching {
-            include "**/${viewName}.html"
-        }
-        if (results.isEmpty()) {
-            println "No views could be found matching ${viewName}"
-            return
-        }
-        if (results.size() > 1) {
-            println "Multiple views found matching ${viewName}: ${results}"
-            return
-        }
-
-        def fromFile = explodedDir + "/WEB-INF/classes"
-        def resourcesDir = "src/main/resources"
-        mkdir resourcesDir
-
-        def viewFile = results[0].canonicalPath
-        def toViewFile = viewFile.replace(fromFile, resourcesDir)
-
-        def parent = file(toViewFile).getParent()
-        mkdir parent
-
-        Files.copy(Paths.get(viewFile), Paths.get(toViewFile), StandardCopyOption.REPLACE_EXISTING)
-        println "Copied view file to ${toViewFile}"
-    }
-}
-
 task getResource(group: "build", description: "Fetch a CAS resource and move it into the overlay") {
     dependsOn explodeWar
 
@@ -379,7 +345,7 @@ task getResource(group: "build", description: "Fetch a CAS resource and move it 
         def resourceName = project.getProperty("resourceName")
 
         def results = fileTree(explodedDir).matching {
-            include "**/${resourceName}.html"
+            include "**/${resourceName}.*"
         }
         if (results.isEmpty()) {
             println "No resources could be found matching ${resourceName}"
@@ -401,7 +367,7 @@ task getResource(group: "build", description: "Fetch a CAS resource and move it 
         mkdir parent
 
         Files.copy(Paths.get(resourceFile), Paths.get(toResourceFile), StandardCopyOption.REPLACE_EXISTING)
-        println "Copied file to ${toViewFile}"
+        println "Copied file to ${toResourceFile}"
     }
 }
 

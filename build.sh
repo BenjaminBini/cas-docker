@@ -101,7 +101,7 @@ function getresource() {
 }
 
 function getview() {
-	./gradlew getTemplateView -PviewName="$@"
+	./gradlew getResource -PresourceName="$@"
 }
 
 function gencert() {
