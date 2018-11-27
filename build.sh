@@ -53,23 +53,7 @@ function dependencies() {
 }
 
 function tomcat() {
-	./gradlew clean build -Pexternal=true "$@"
-
-	if [ ! -f apache-tomcat.zip ]; then
-		wget -O apache-tomcat.zip "http://www-eu.apache.org/dist/tomcat/tomcat-${tomcatVersion}/v${tomcatFullVersion}/bin/apache-tomcat-${tomcatFullVersion}.zip"
-	fi
-	rm -Rf ./apache-tomcat
-	unzip -o apache-tomcat.zip >/dev/null
-	mv apache-tomcat-${tomcatFullVersion} apache-tomcat
-
-	export CATALINA_HOME=./apache-tomcat/
-	chmod +x ./apache-tomcat/bin/*.sh
-    echo "Attempting to shutdown Apache Tomcat..."
-    ./apache-tomcat/bin/shutdown.sh 2>/dev/null
-
-	cp build/libs/cas.war ../apache-tomcat/webapps/
-	./apache-tomcat/bin/startup.sh
-	tail -F ../apache-tomcat/logs/catalina.out
+	./gradlew tomcatDeploy "$@"
 }
 
 function debug() {

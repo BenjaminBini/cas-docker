@@ -1,3 +1,7 @@
+import org.apache.ivy.util.url.*
+import org.apache.tools.ant.taskdefs.condition.Os
+import java.nio.file.*
+import java.util.*
 
 buildscript {
     repositories {
@@ -10,7 +14,12 @@ buildscript {
     }
 }
 
-task copyCasConfiguration(type: Copy, group: "build") {
+apply plugin: 'de.undercouch.download'
+apply plugin: 'com.boazj.log'
+
+def tomcatDirectory = "${buildDir}/apache-tomcat-${tomcatFullVersion}"
+
+task copyCasConfiguration(type: Copy, group: "build", description: "Copy the CAS configuration from this project to /etc/cas/config") {
     from "etc/cas/config"
     into "/etc/cas/config"
     doFirst {
@@ -18,13 +27,13 @@ task copyCasConfiguration(type: Copy, group: "build") {
     }
 }
 
-task copyWebAppIntoJib(type: Copy, group: "Docker", description: "Copy the CAS configuration from this project to /etc/cas/config") {
+task copyWebAppIntoJib(type: Copy, group: "Docker", description: "Copy the web application into Docker image") {
     dependsOn build
     from "build/libs/${casWebApplicationBinaryName}"
     into "src/main/jib/docker/cas/war"
 }
 
-task copyConfigIntoJib(type: Copy, group: "Docker") {
+task copyConfigIntoJib(type: Copy, group: "Docker", description: "Copy the CAS configuration into Docker image") {
     dependsOn build
     from "etc/cas"
     into "src/main/jib/docker/cas"
@@ -67,7 +76,7 @@ task executable(type:Exec, group: "build", description: "Run the CAS web applica
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             commandLine "chmod", "+x", bootWar.archivePath
         }
-        logger.info "Running" + bootWar.archivePath
+        logger.info "Running ${bootWar.archivePath}"
         commandLine bootWar.archivePath
     }
 }
@@ -95,7 +104,7 @@ task downloadShell (group: "shell", description: "Download CAS shell jar from sn
         def downloadFile
         if (isRunningCasServerSnapshot(casServerVersion)) {
             def snapshotDir = "https://oss.sonatype.org/content/repositories/snapshots/org/apereo/cas/cas-server-support-shell/${casServerVersion}/"
-            def files = new org.apache.ivy.util.url.ApacheURLLister().listFiles(new URL(snapshotDir))
+            def files = new ApacheURLLister().listFiles(new URL(snapshotDir))
             files = files.sort{it.path}
             files.each {
                 if (it.path.endsWith(".jar")) {
@@ -236,3 +245,75 @@ task getResource(group: "build", description: "Fetch a CAS resource and move it 
 def isRunningCasServerSnapshot(casServerVersion) {
     return "${casServerVersion}".contains("-SNAPSHOT")
 }
+
+
+task downloadTomcat(type: Download) {
+    def downloadFile = "https://www.apache.org/dist/tomcat/tomcat-${tomcatVersion}/v${tomcatFullVersion}/bin/apache-tomcat-${tomcatFullVersion}.zip"
+    logger.info "Downloading file $downloadFile"
+    src downloadFile
+    dest new File("apache-tomcat.zip")
+    overwrite false
+}
+
+task unzipTomcat(type: Copy) {
+    from zipTree(downloadTomcat.dest)
+    into buildDir
+    includeEmptyDirs = false
+}
+
+task setCatalinaPermissions(type:Exec) {
+    doFirst {
+        commandLine "chmod", "+x", "${tomcatDirectory}/bin/catalina.sh"
+    }
+}
+
+task setTomcatStartupPermissions(type:Exec) {
+    dependsOn setCatalinaPermissions
+    doFirst {
+        commandLine "chmod", "+x", "${tomcatDirectory}/bin/startup.sh"
+    }
+}
+
+task setTomcatShutdownPermissions(type:Exec) {
+    dependsOn setCatalinaPermissions
+    doFirst {
+        commandLine "chmod", "+x", "${tomcatDirectory}/bin/shutdown.sh"
+    }
+}
+
+task shutdownTomcat(type:Exec) {
+    doFirst {
+        environment["CATALINA_HOME"] = "${tomcatDirectory}"
+        commandLine "${tomcatDirectory}/bin/shutdown.sh", "2>/dev/null"
+        ignoreExitValue = true
+    }
+}
+
+
+task tomcatDeploy(type:Exec) {
+    dependsOn build, downloadTomcat, unzipTomcat,
+        setTomcatShutdownPermissions, setTomcatStartupPermissions,
+        shutdownTomcat
+
+    doFirst {
+        Files.copy(Paths.get(bootWar.archivePath.canonicalPath), 
+            Paths.get("${tomcatDirectory}/webapps/${casWebApplicationBinaryName}"), 
+            StandardCopyOption.REPLACE_EXISTING)
+        mkdir "${tomcatDirectory}/logs"
+        environment["CATALINA_HOME"] = "${tomcatDirectory}"
+        commandLine "${tomcatDirectory}/bin/startup.sh"
+    }
+}
+
+tail {
+    log = files("${tomcatDirectory}/logs/catalina.out")
+    showColors = true
+}
+
+build.mustRunAfter(setExecutable)
+
+unzipTomcat.mustRunAfter(downloadTomcat)
+setTomcatStartupPermissions.mustRunAfter(unzipTomcat)
+setTomcatShutdownPermissions.mustRunAfter(setTomcatStartupPermissions)
+shutdownTomcat.mustRunAfter(setTomcatShutdownPermissions)
+tomcatDeploy.mustRunAfter(shutdownTomcat).finalizedBy(tail)
