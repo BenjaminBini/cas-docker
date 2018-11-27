@@ -5,10 +5,11 @@ function copy() {
 }
 
 function help() {
+	casVersion=$(./gradlew casVersion --quiet)
 	clear
 	echo "******************************************************************"
 	tput setaf 2
-	echo "Apereo CAS ${casVersion}"
+	echo "Apereo CAS $casVersion"
 	echo "Enterprise Single SignOn for all earthlings and beyond"
 	tput sgr 0
 	echo "- https://github.com/apereo/cas"
@@ -72,20 +73,15 @@ function tomcat() {
 }
 
 function debug() {
-	casWar="build/libs/cas.war"
-	package && java -Xdebug -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=n -jar $casWar
+	./gradlew debug "$@"
 }
 
 function run() {
-	casWar="build/libs/cas.war"
-	package && java -XX:TieredStopAtLevel=1 -Xverify:none -jar $casWar
+	./gradlew run "$@"
 }
 
 function runalone() {
-	./gradlew clean build -Pexecutable=true "$@"
-	casWar="build/libs/cas.war"
-	chmod +x $casWar
-   	$casWar
+	./gradlew clean executable
 }
 
 function jibdocker() {
@@ -164,52 +160,11 @@ function getview() {
 }
 
 function gencert() {
-	if [[ ! -d /etc/cas ]] ; then
-		copy
-	fi
-	which keytool
-	if [[ $? -ne 0 ]] ; then
-		echo Error: Java JDK \'keytool\' is not installed or is not in the path
-		exit 1
-	fi
-	# override DNAME and CERT_SUBJ_ALT_NAMES before calling or use dummy values
-	DNAME="${DNAME:-CN=cas.example.org,OU=Example,OU=Org,C=US}"
-	CERT_SUBJ_ALT_NAMES="${CERT_SUBJ_ALT_NAMES:-dns:example.org,dns:localhost,ip:127.0.0.1}"
-	echo "Generating keystore for CAS with DN ${DNAME}"
-	keytool -genkeypair -alias cas -keyalg RSA -keypass changeit -storepass changeit -keystore /etc/cas/thekeystore -dname ${DNAME} -ext SAN=${CERT_SUBJ_ALT_NAMES}
-	keytool -exportcert -alias cas -storepass changeit -keystore /etc/cas/thekeystore -file /etc/cas/cas.cer
+	./gradlew createKeystore "$@"
 }
 
 function cli() {
-	rm -f *.log
-	CAS_VERSION=$(./gradlew casVersion --quiet)
-
-	echo "CAS version: $CAS_VERSION"
-	JAR_FILE_NAME="cas-server-support-shell-${CAS_VERSION}.jar"
-	echo "JAR name: $JAR_FILE_NAME"
-	JAR_PATH="org/apereo/cas/cas-server-support-shell/${CAS_VERSION}/${JAR_FILE_NAME}"
-	echo "JAR path: $JAR_PATH"
-
-	JAR_FILE_LOCAL="$HOME/.m2/repository/$JAR_PATH";
-	echo "Local JAR file path: $JAR_FILE_LOCAL";
-	if [ -f "$JAR_FILE_LOCAL" ]; then
-		echo "Using JAR file locally at $JAR_FILE_LOCAL"
-		java -jar $JAR_FILE_LOCAL "$@"
-		exit 0;
-	fi
-
-	DOWNLOAD_DIR=./build/libs
-
-	COMMAND_FILE="${DOWNLOAD_DIR}/${JAR_FILE_NAME}"
-	if [ ! -f "$COMMAND_FILE" ]; then
-		mkdir -p $DOWNLOAD_DIR
-		wget "https://repo1.maven.org/maven2/${JAR_PATH}" -P ./target
-	fi
-
-	echo "Running $COMMAND_FILE"
-	java -jar $COMMAND_FILE "$@"
-	exit 0;
-
+	./gradlew downloadShell runShell "$@"
 }
 
 command=$1
