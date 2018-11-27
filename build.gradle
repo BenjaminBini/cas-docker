@@ -39,6 +39,15 @@ def casWebApplicationBinaryName = "cas.war"
 
 tasks.findByName("build").mustRunAfter("setExecutable")
 
+afterEvaluate { project ->
+    println "******************************************************************"
+    println "Apereo CAS $casServerVersion"
+    println "Enterprise Single SignOn for all earthlings and beyond"
+    println "- https://github.com/apereo/cas"
+    println "- https://apereo.github.io/cas"
+    println "******************************************************************"
+}
+
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
@@ -310,6 +319,20 @@ task createKeystore (type:Exec, group: "build", description: "Create CAS keystor
         commandLine "keytool", "-exportcert", "-alias", "cas",
             "-storepass", "changeit", "-keystore", keystorePath,
             "-file", "/etc/cas/cas.cer"
+    }
+}
+
+task listTemplateViews (group: "build", description: "Create CAS keystore") {
+    dependsOn explodeWar
+
+    doFirst {
+        def explodedDir="${buildDir}/cas"
+        fileTree(explodedDir).matching {
+            include "**/*.html"
+        }
+        .collect { it.name }
+        .toSorted()
+        .each { println it }
     }
 }
 

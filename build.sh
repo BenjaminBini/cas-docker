@@ -89,9 +89,7 @@ function jibdocker() {
 }
 
 function listviews() {
-	explodeApp
-	explodedDir=build/cas
-	find $explodedDir -type f -name "*.html" | xargs -n 1 basename | sort | more
+	./gradlew listTemplateViews "$@"
 }
 
 function explodeApp() {
