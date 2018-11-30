@@ -246,13 +246,6 @@ def isRunningCasServerSnapshot(casServerVersion) {
     return "${casServerVersion}".contains("-SNAPSHOT")
 }
 
-task setExternal(group: "build", description: "Configure the project to run in an external container") {
-    doFirst {
-        project.setProperty("external", "true")
-        logger.info "Configuring the project as external"
-    }
-}
-
 task downloadTomcat(type: Download) {
     def tomcatMajorVersion = "${tomcatVersion}".substring(0, "${tomcatVersion}".indexOf("."))
     def downloadFile = "https://www.apache.org/dist/tomcat/tomcat-${tomcatMajorVersion}/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}.zip"
@@ -279,7 +272,7 @@ task shutdownTomcat(type:Exec) {
 }
 
 task tomcatDeploy(type:Exec) {
-    dependsOn setExternal, build, downloadTomcat, unzipTomcat, shutdownTomcat
+    dependsOn build, downloadTomcat, unzipTomcat, shutdownTomcat
 
     doFirst {
         Files.copy(Paths.get(bootWar.archivePath.canonicalPath), 
@@ -301,7 +294,7 @@ tail {
     }
 }
 
-build.mustRunAfter(setExternal, setExecutable)
+build.mustRunAfter(setExecutable)
 unzipTomcat.mustRunAfter(downloadTomcat)
 shutdownTomcat.mustRunAfter(unzipTomcat)
 tomcatDeploy.mustRunAfter(shutdownTomcat).finalizedBy(tail)

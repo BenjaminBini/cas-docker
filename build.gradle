@@ -42,12 +42,7 @@ apply plugin: "idea"
 apply plugin: "com.google.cloud.tools.jib"
 
 dependencies {
-    def external = project.hasProperty("external") && Boolean.valueOf(project.getProperty("external"))
-    if (external) {
-        compile "org.apereo.cas:cas-server-webapp:${casServerVersion}"
-    } else {
-        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}"
-    }
+    compile "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}"
     // Other CAS dependencies/modules may be listed here...
 }
 
