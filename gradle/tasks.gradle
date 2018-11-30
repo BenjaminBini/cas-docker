@@ -3,6 +3,15 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import java.nio.file.*
 import java.util.*
 
+afterEvaluate { project ->
+    println "******************************************************************"
+    println "Apereo CAS $casServerVersion"
+    println "Enterprise Single SignOn for all earthlings and beyond"
+    println "- https://github.com/apereo/cas"
+    println "- https://apereo.github.io/cas"
+    println "******************************************************************"
+}
+
 buildscript {
     repositories {
         mavenLocal()
@@ -14,10 +23,13 @@ buildscript {
     }
 }
 
-apply plugin: 'de.undercouch.download'
-apply plugin: 'com.boazj.log'
+apply plugin: "de.undercouch.download"
+apply plugin: "com.boazj.log"
 
 def tomcatDirectory = "${buildDir}/apache-tomcat-${tomcatVersion}"
+project.ext."tomcatDirectory" = tomcatDirectory
+
+def explodedDir="${buildDir}/cas"
 
 task copyCasConfiguration(type: Copy, group: "build", description: "Copy the CAS configuration from this project to /etc/cas/config") {
     from "etc/cas/config"
@@ -46,7 +58,7 @@ task deleteWebAppFromJib(type: Delete, group: "Docker", description: "Explodes t
 task explodeWar(type: Copy, group: "build", description: "Explodes the CAS web application archive") {
     dependsOn build
     from zipTree("build/libs/${casWebApplicationBinaryName}")
-    into "${buildDir}/cas"
+    into explodedDir
 }
 
 task run(group: "build", description: "Run the CAS web application in embedded container mode") {
@@ -198,7 +210,6 @@ task listTemplateViews (group: "build", description: "List all CAS views") {
     dependsOn explodeWar
 
     doFirst {
-        def explodedDir="${buildDir}/cas"
         fileTree(explodedDir).matching {
             include "**/*.html"
         }
@@ -212,7 +223,6 @@ task getResource(group: "build", description: "Fetch a CAS resource and move it 
     dependsOn explodeWar
 
     doFirst {
-        def explodedDir="${buildDir}/cas"
         def resourceName = project.getProperty("resourceName")
 
         def results = fileTree(explodedDir).matching {
@@ -261,44 +271,25 @@ task unzipTomcat(type: Copy) {
     includeEmptyDirs = false
 }
 
-task setCatalinaPermissions(type:Exec) {
-    doFirst {
-        commandLine "chmod", "+x", "${tomcatDirectory}/bin/catalina.sh"
-    }
-}
-
-task setTomcatStartupPermissions(type:Exec) {
-    dependsOn setCatalinaPermissions
-    doFirst {
-        commandLine "chmod", "+x", "${tomcatDirectory}/bin/startup.sh"
-    }
-}
-
-task setTomcatShutdownPermissions(type:Exec) {
-    dependsOn setCatalinaPermissions
-    doFirst {
-        commandLine "chmod", "+x", "${tomcatDirectory}/bin/shutdown.sh"
-    }
-}
-
 task shutdownTomcat(type:Exec) {
     doFirst {
+        new File("${tomcatDirectory}/bin/catalina.sh").setExecutable(true)
+        new File("${tomcatDirectory}/bin/shutdown.sh").setExecutable(true)
         environment["CATALINA_HOME"] = "${tomcatDirectory}"
         commandLine "${tomcatDirectory}/bin/shutdown.sh", "2>/dev/null"
         ignoreExitValue = true
     }
 }
 
-
 task tomcatDeploy(type:Exec) {
-    dependsOn build, downloadTomcat, unzipTomcat,
-        setTomcatShutdownPermissions, setTomcatStartupPermissions,
-        shutdownTomcat
+    dependsOn build, downloadTomcat, unzipTomcat, shutdownTomcat
 
     doFirst {
         Files.copy(Paths.get(bootWar.archivePath.canonicalPath), 
             Paths.get("${tomcatDirectory}/webapps/${casWebApplicationBinaryName}"), 
             StandardCopyOption.REPLACE_EXISTING)
+        new File("${tomcatDirectory}/bin/catalina.sh").setExecutable(true)
+        new File("${tomcatDirectory}/bin/startup.sh").setExecutable(true)
         mkdir "${tomcatDirectory}/logs"
         environment["CATALINA_HOME"] = "${tomcatDirectory}"
         commandLine "${tomcatDirectory}/bin/startup.sh"
@@ -313,7 +304,4 @@ tail {
 build.mustRunAfter(setExecutable)
 
 unzipTomcat.mustRunAfter(downloadTomcat)
-setTomcatStartupPermissions.mustRunAfter(unzipTomcat)
-setTomcatShutdownPermissions.mustRunAfter(setTomcatStartupPermissions)
-shutdownTomcat.mustRunAfter(setTomcatShutdownPermissions)
 tomcatDeploy.mustRunAfter(shutdownTomcat).finalizedBy(tail)

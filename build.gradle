@@ -12,7 +12,7 @@ buildscript {
         classpath "de.undercouch:gradle-download-task:${project.gradleDownloadTaskVersion}"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.springBootVersion}"
         classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:${project.jibVersion}"
-        classpath 'com.boazj.gradle:gradle-log-plugin:0.1.0'
+        classpath "com.boazj.gradle:gradle-log-plugin:${project.gradleLogVersion}"
     }
 }
 
@@ -32,7 +32,7 @@ def casWebApplicationBinaryName = "cas.war"
 project.ext."casServerVersion" = casServerVersion
 project.ext."casWebApplicationBinaryName" = casWebApplicationBinaryName
 
-apply from: "https://dl.bintray.com/scalding/generic/waroverlay.gradle"
+apply from: rootProject.file("gradle/waroverlay.gradle")
 apply from: rootProject.file("gradle/tasks.gradle")
 
 apply plugin: "war"
@@ -45,17 +45,14 @@ tasks.findByName("jibDockerBuild")
     .dependsOn(copyWebAppIntoJib, copyConfigIntoJib)
     .finalizedBy(deleteWebAppFromJib)
 
-afterEvaluate { project ->
-    println "******************************************************************"
-    println "Apereo CAS $casServerVersion"
-    println "Enterprise Single SignOn for all earthlings and beyond"
-    println "- https://github.com/apereo/cas"
-    println "- https://apereo.github.io/cas"
-    println "******************************************************************"
-}
-
 configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    resolutionStrategy {
+        cacheChangingModulesFor 0, "seconds"
+        cacheDynamicVersionsFor 0, "seconds"
+
+        preferProjectModules()
+        failOnVersionConflict()
+    }
 }
 
 eclipse {
