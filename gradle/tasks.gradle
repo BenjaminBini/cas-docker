@@ -138,27 +138,17 @@ task downloadShell (group: "shell", description: "Download CAS shell jar from sn
 task runShell (group: "shell",  description: "Run the CAS shell") {
     dependsOn downloadShell
     doLast {
-        def casShellArgs = Arrays.asList("-Xmx1500M".split(" "))
-        javaexec {
-            main = "-jar"
-            jvmArgs = casShellArgs
-            standardInput = System.in
-            args = ["${project.shellDir}/cas-server-support-shell-${casServerVersion}.jar", "--shell"]
-        }
+        println "Run the following command to launch the shell:\n\tjava -jar ${project.shellDir}/cas-server-support-shell-${casServerVersion}.jar"
     }
 }
 
 task debugShell (group: "shell", description: "Run the CAS shell with debug options, wait for debugger on port 5005") {
     dependsOn downloadShell
     doLast {
-        def casArgs = Arrays.asList("-Xmx1500M ".split(" "))
-        javaexec {
-            main = "-jar"
-            jvmArgs = casArgs
-            debug = true
-            standardInput = System.in
-            args = ["${project.shellDir}/cas-server-support-shell-${casServerVersion}.jar", "--shell"]
-        }
+        println """
+        Run the following command to launch the shell:\n\t
+        java -Xrunjdwp:transport=dt_socket,address=5000,server=y,suspend=y -jar ${project.shellDir}/cas-server-support-shell-${casServerVersion}.jar
+        """
     }
 }
 
@@ -248,12 +238,19 @@ task getResource(group: "build", description: "Fetch a CAS resource and move it 
         mkdir parent
 
         Files.copy(Paths.get(resourceFile), Paths.get(toResourceFile), StandardCopyOption.REPLACE_EXISTING)
-        println "Copied file to ${toResourceFile}"
+        println "Copied file ${resourceFile} to ${toResourceFile}"
     }
 }
 
 def isRunningCasServerSnapshot(casServerVersion) {
     return "${casServerVersion}".contains("-SNAPSHOT")
+}
+
+task setExternal(group: "build", description: "Configure the project to run in an external container") {
+    doFirst {
+        project.setProperty("external", "true")
+        logger.info "Configuring the project as external"
+    }
 }
 
 task downloadTomcat(type: Download) {
@@ -282,7 +279,7 @@ task shutdownTomcat(type:Exec) {
 }
 
 task tomcatDeploy(type:Exec) {
-    dependsOn build, downloadTomcat, unzipTomcat, shutdownTomcat
+    dependsOn setExternal, build, downloadTomcat, unzipTomcat, shutdownTomcat
 
     doFirst {
         Files.copy(Paths.get(bootWar.archivePath.canonicalPath), 
@@ -299,9 +296,12 @@ task tomcatDeploy(type:Exec) {
 tail {
     log = files("${tomcatDirectory}/logs/catalina.out")
     showColors = true
+    doFirst {
+        println "Type 'quit' to exit"
+    }
 }
 
-build.mustRunAfter(setExecutable)
-
+build.mustRunAfter(setExternal, setExecutable)
 unzipTomcat.mustRunAfter(downloadTomcat)
+shutdownTomcat.mustRunAfter(unzipTomcat)
 tomcatDeploy.mustRunAfter(shutdownTomcat).finalizedBy(tail)

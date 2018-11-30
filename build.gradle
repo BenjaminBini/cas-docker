@@ -41,6 +41,16 @@ apply plugin: "eclipse"
 apply plugin: "idea"
 apply plugin: "com.google.cloud.tools.jib"
 
+dependencies {
+    def external = project.hasProperty("external") && Boolean.valueOf(project.getProperty("external"))
+    if (external) {
+        compile "org.apereo.cas:cas-server-webapp:${casServerVersion}"
+    } else {
+        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}"
+    }
+    // Other CAS dependencies/modules may be listed here...
+}
+
 tasks.findByName("jibDockerBuild")
     .dependsOn(copyWebAppIntoJib, copyConfigIntoJib)
     .finalizedBy(deleteWebAppFromJib)
@@ -51,7 +61,7 @@ configurations.all {
         cacheDynamicVersionsFor 0, "seconds"
 
         preferProjectModules()
-        failOnVersionConflict()
+        // failOnVersionConflict()
     }
 }
 
@@ -101,15 +111,6 @@ bootRun {
 wrapper {
     distributionType = Wrapper.DistributionType.BIN
     gradleVersion = "${project.gradleVersion}"
-}
-
-dependencies {
-    if (project.hasProperty("external")) {
-        compile "org.apereo.cas:cas-server-webapp:${casServerVersion}"
-    } else {
-        compile "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}"
-    }
-    // Other dependencies may be listed here...
 }
 
 jib {
