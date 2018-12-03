@@ -43,7 +43,6 @@ apply plugin: "com.google.cloud.tools.jib"
 
 dependencies {
     compile "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}"
-    compile "org.apereo.cas:cas-server-support-pac4j-webflow:${casServerVersion}"
     // Other CAS dependencies/modules may be listed here...
 }
 
@@ -57,7 +56,7 @@ configurations.all {
         cacheDynamicVersionsFor 0, "seconds"
 
         preferProjectModules()
-        failOnVersionConflict()
+        // failOnVersionConflict()
     }
 }
 
