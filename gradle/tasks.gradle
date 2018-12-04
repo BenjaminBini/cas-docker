@@ -2,15 +2,9 @@ import org.apache.ivy.util.url.*
 import org.apache.tools.ant.taskdefs.condition.Os
 import java.nio.file.*
 import java.util.*
-
-afterEvaluate { project ->
-    println "******************************************************************"
-    println "Apereo CAS $casServerVersion"
-    println "Enterprise Single SignOn for all earthlings and beyond"
-    println "- https://github.com/apereo/cas"
-    println "- https://apereo.github.io/cas"
-    println "******************************************************************"
-}
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style;
 
 buildscript {
     repositories {
@@ -164,7 +158,24 @@ task allDependenciesInsight(group: "build", type: DependencyInsightReportTask, d
 task allDependencies(group: "build", type: DependencyReportTask, description: "Display a graph of all project dependencies") {}
 
 task casVersion (group: "build", description: "Display the current CAS version") {
-    doFirst { println casServerVersion }
+    doFirst {
+        def verbose = project.hasProperty("verbose") && Boolean.valueOf(project.getProperty("verbose"))
+        if (verbose) {
+            def out = services.get(StyledTextOutputFactory).create("CAS")
+            println "******************************************************************"
+            out.withStyle(Style.Info).println "Apereo CAS $casServerVersion"
+            out.withStyle(Style.Description).println "Enterprise Single SignOn for all earthlings and beyond"
+            out.withStyle(Style.SuccessHeader).println "- GitHub: "
+            out.withStyle(Style.Success).println "https://github.com/apereo/cas"
+            out.withStyle(Style.SuccessHeader).println "- Docs: "
+            out.withStyle(Style.Success).println "https://apereo.github.io/cas"
+            out.withStyle(Style.SuccessHeader).println "- Blog: "
+            out.withStyle(Style.Success).println "https://apereo.github.io"
+            println "******************************************************************"
+        } else {
+            println casServerVersion
+        }
+    }
 }
 
 task createKeystore (type:Exec, group: "build", description: "Create CAS keystore") {

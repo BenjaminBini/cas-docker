@@ -1,5 +1,3 @@
-
-
 buildscript {
     repositories {
         mavenLocal()
@@ -56,7 +54,11 @@ configurations.all {
         cacheDynamicVersionsFor 0, "seconds"
 
         preferProjectModules()
-        // failOnVersionConflict()
+
+        def failIfConflict = project.hasProperty("failOnVersionConflict") && Boolean.valueOf(project.getProperty("failOnVersionConflict"))
+        if (failIfConflict) {
+            failOnVersionConflict()
+        }
     }
 }
 
