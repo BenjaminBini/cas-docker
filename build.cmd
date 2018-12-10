@@ -16,7 +16,7 @@
 @if "%CERT_SUBJ_ALT_NAMES%" == "" set CERT_SUBJ_ALT_NAMES=dns:example.org,dns:localhost,dns:%COMPUTERNAME%,ip:127.0.0.1
 
 @rem Check for gradle in path, use it if found, otherwise use gradle wrapper
-@set GRADLE_CMD=gradle.bat
+@set GRADLE_CMD=gradle
 @where /q gradle
 @if %ERRORLEVEL% neq 0 set GRADLE_CMD=.\gradlew.bat
 

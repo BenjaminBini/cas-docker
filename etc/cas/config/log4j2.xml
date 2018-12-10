@@ -8,6 +8,7 @@
         <Property name="spring.webflow.log.level">warn</Property>
         <Property name="spring.security.log.level">info</Property>
         <Property name="spring.cloud.log.level">warn</Property>
+        <Property name="spring.boot.admin.log.level">debug</Property>
         <Property name="spring.web.log.level">warn</Property>
         <Property name="spring.boot.log.level">warn</Property>
         <Property name="ldap.log.level">warn</Property>
@@ -94,7 +95,7 @@
 
         <AsyncLogger name="net.sf.ehcache" level="warn" includeLocation="true"/>
         <AsyncLogger name="com.couchbase" level="warn" includeLocation="true"/>
-
+        <AsyncLogger name="de.codecentric" level="${sys:spring.boot.admin.log.level}" includeLocation="true"/>
         <AsyncLogger name="net.jradius" level="warn" includeLocation="true" />
         <AsyncLogger name="org.openid4java" level="warn" includeLocation="true" />
         <AsyncLogger name="org.ldaptive" level="${sys:ldap.log.level}" includeLocation="true"/>
