@@ -1,8 +1,6 @@
 import org.apache.ivy.util.url.*
 import org.apache.tools.ant.taskdefs.condition.Os
 import java.nio.file.*
-import java.util.*
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style;
 
@@ -178,10 +176,9 @@ task casVersion (group: "build", description: "Display the current CAS version")
     }
 }
 
-task createKeystore (type:Exec, group: "build", description: "Create CAS keystore") {
+task createKeystore (group: "build", description: "Create CAS keystore") {
     doFirst {
         mkdir "/etc/cas"
-        workingDir "."
 
         def keystorePath = "/etc/cas/thekeystore"
 
@@ -189,23 +186,32 @@ task createKeystore (type:Exec, group: "build", description: "Create CAS keystor
         if (project.hasProperty("certificateDn")) {
             dn = project.getProperty("certificateDn")
         }
-	    def subjectAltName = "dns:example.org,dns:localhost,ip:127.0.0.1"
+        def subjectAltName = "dns:example.org,dns:localhost,ip:127.0.0.1"
         if (project.hasProperty("certificateSubAltName")) {
             subjectAltName = project.getProperty("certificateSubAltName")
         }
+        // this will fail if thekeystore exists and has cert with cas alias already (so delete if you want to recreate)
         logger.info "Generating keystore for CAS with DN ${dn}"
-        commandLine "keytool", "-genkeypair", "-alias", "cas",
-            "-keyalg", "RSA",
-            "-keypass", "changeit", "-storepass", "changeit",
-            "-keystore", keystorePath,
-            "-dname", dn, "-ext", "SAN=${subjectAltName}"
-
-        logger.info "Exporting keystore..."
-        commandLine "keytool", "-exportcert", "-alias", "cas",
-            "-storepass", "changeit", "-keystore", keystorePath,
-            "-file", "/etc/cas/cas.cer"
+        exec {
+            workingDir "."
+            commandLine "keytool", "-genkeypair", "-alias", "cas",
+                    "-keyalg", "RSA",
+                    "-keypass", "changeit", "-storepass", "changeit",
+                    "-keystore", keystorePath,
+                    "-dname", dn, "-ext", "SAN=${subjectAltName}"
+        }
+        logger.info "Exporting cert from keystore..."
+        exec {
+            workingDir "."
+            commandLine "keytool", "-exportcert", "-alias", "cas",
+                    "-storepass", "changeit", "-keystore", keystorePath,
+                    "-file", "/etc/cas/cas.cer"
+        }
+        logger.info "Import /etc/cas/cas.cer into your Java truststore (JAVA_HOME/lib/security/cacerts)"
     }
 }
+
+
 
 task listTemplateViews (group: "build", description: "List all CAS views") {
     dependsOn explodeWar
