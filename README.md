@@ -56,6 +56,11 @@ To unzip and explode the CAS web application file:
 # Configuration
 
 - The `etc` directory contains the configuration files and directories that need to be copied to `/etc/cas/config`.
+
+```bash
+./gradlew[.bat] copyCasConfiguration
+```
+
 - The specifics of the build are controlled using the `gradle.properties` file.
 
 ## Adding Modules
