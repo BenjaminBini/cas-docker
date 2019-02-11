@@ -25,9 +25,9 @@ def explodedDir="${buildDir}/cas"
 
 task copyCasConfiguration(type: Copy, group: "build", description: "Copy the CAS configuration from this project to /etc/cas/config") {
     from "etc/cas/config"
-    into "/etc/cas/config"
+    into new File('/etc/cas/config').absolutePath
     doFirst {
-        mkdir "/etc/cas/config"
+        new File('/etc/cas/config').mkdirs()
     }
 }
 
