@@ -81,6 +81,10 @@ war {
     entryCompression = ZipEntryCompression.STORED
 }
 
+bootRun.enabled = false
+bootRun.onlyIf { return false }
+tasks.remove(tasks['bootRun'])
+
 springBoot {
     mainClassName = "org.apereo.cas.web.CasWebApplication"
 }
@@ -100,10 +104,12 @@ bootWar {
     }
 }
 
-bootRun {
-    sourceResources sourceSets.main
-    classpath = sourceSets.main.runtimeClasspath
-}
+/*
+    bootRun {
+        sourceResources sourceSets.main
+        classpath = sourceSets.main.runtimeClasspath
+    }
+*/
 
 wrapper {
     distributionType = Wrapper.DistributionType.BIN
