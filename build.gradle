@@ -10,7 +10,6 @@ buildscript {
         classpath "de.undercouch:gradle-download-task:${project.gradleDownloadTaskVersion}"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.springBootVersion}"
         classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:${project.jibVersion}"
-        classpath "com.boazj.gradle:gradle-log-plugin:${project.gradleLogVersion}"
     }
 }
 
@@ -103,13 +102,6 @@ bootWar {
         excludeDevtools = true
     }
 }
-
-/*
-    bootRun {
-        sourceResources sourceSets.main
-        classpath = sourceSets.main.runtimeClasspath
-    }
-*/
 
 wrapper {
     distributionType = Wrapper.DistributionType.BIN
