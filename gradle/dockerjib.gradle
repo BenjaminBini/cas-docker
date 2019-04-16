@@ -1,3 +1,5 @@
+apply plugin: "com.google.cloud.tools.jib"
+
 jib {
     from {
         image = project.baseDockerImage
