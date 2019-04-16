@@ -38,6 +38,9 @@ apply plugin: "eclipse"
 apply plugin: "idea"
 apply plugin: "com.google.cloud.tools.jib"
 
+apply from: rootProject.file("gradle/springboot.gradle")
+apply from: rootProject.file("gradle/dockerjib.gradle")
+
 dependencies {
     compile "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}"
     // Other CAS dependencies/modules may be listed here...
@@ -80,64 +83,8 @@ war {
     entryCompression = ZipEntryCompression.STORED
 }
 
-bootRun.enabled = false
-bootRun.onlyIf { return false }
-tasks.remove(tasks['bootRun'])
-
-springBoot {
-    mainClassName = "org.apereo.cas.web.CasWebApplication"
-}
-
-bootWar {
-    doFirst {
-        def executable = project.hasProperty("executable") && Boolean.valueOf(project.getProperty("executable"))
-        if (executable) {
-            logger.info "Including launch script for executable WAR artifact"
-            launchScript()
-        } else {
-            logger.info "WAR artifact is not marked as an executable"
-        }
-        archiveName "${casWebApplicationBinaryName}"
-        baseName "cas"
-        excludeDevtools = true
-    }
-}
 
 wrapper {
     distributionType = Wrapper.DistributionType.BIN
     gradleVersion = "${project.gradleVersion}"
-}
-
-jib {
-    from {
-        image = project.baseDockerImage
-    }
-    to {
-        image = "${project.group}/${project.name}"
-        /**
-         ecr-login: Amazon Elastic Container Registry (ECR)
-         gcr: Google Container Registry (GCR)
-         osxkeychain: Docker Hub
-         */
-        credHelper = "osxkeychain"
-        /**
-        auth {
-            username = "*******"
-            password = "*******"
-        }
-        tags = [casServerVersion]
-        */
-    }
-    container {
-        useCurrentTimestamp = true
-        entrypoint = ['docker/entrypoint.sh']
-        ports = ['80', '443', '8080', '8443']
-        labels = [version:casServerVersion, name:project.name, group:project.group]
-    }
-    extraDirectory {
-        path = file('src/main/jib')
-        permissions = [
-            '/docker/entrypoint.sh': '755'
-        ]
-    }
 }

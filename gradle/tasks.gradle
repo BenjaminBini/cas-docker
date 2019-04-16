@@ -16,7 +16,6 @@ buildscript {
 }
 
 apply plugin: "de.undercouch.download"
-apply plugin: "com.boazj.log"
 
 def tomcatDirectory = "${buildDir}/apache-tomcat-${tomcatVersion}"
 project.ext."tomcatDirectory" = tomcatDirectory
@@ -100,7 +99,7 @@ task debug(group: "build", description: "Debug the CAS web application in embedd
     }
 }
 
-task downloadShell (group: "shell", description: "Download CAS shell jar from snapshot or release maven repo") {
+task downloadShell(group: "shell", description: "Download CAS shell jar from snapshot or release maven repo") {
     doFirst {
         mkdir "${project.shellDir}"
     }
@@ -127,14 +126,14 @@ task downloadShell (group: "shell", description: "Download CAS shell jar from sn
     }
 }
 
-task runShell (group: "shell",  description: "Run the CAS shell") {
+task runShell(group: "shell",  description: "Run the CAS shell") {
     dependsOn downloadShell
     doLast {
         println "Run the following command to launch the shell:\n\tjava -jar ${project.shellDir}/cas-server-support-shell-${casServerVersion}.jar"
     }
 }
 
-task debugShell (group: "shell", description: "Run the CAS shell with debug options, wait for debugger on port 5005") {
+task debugShell(group: "shell", description: "Run the CAS shell with debug options, wait for debugger on port 5005") {
     dependsOn downloadShell
     doLast {
         println """
@@ -176,7 +175,7 @@ task casVersion (group: "build", description: "Display the current CAS version")
     }
 }
 
-task createKeystore (group: "build", description: "Create CAS keystore") {
+task createKeystore(group: "build", description: "Create CAS keystore") {
     doFirst {
         mkdir "/etc/cas"
 
@@ -210,8 +209,6 @@ task createKeystore (group: "build", description: "Create CAS keystore") {
         logger.info "Import /etc/cas/cas.cer into your Java truststore (JAVA_HOME/lib/security/cacerts)"
     }
 }
-
-
 
 task listTemplateViews (group: "build", description: "List all CAS views") {
     dependsOn explodeWar
@@ -262,56 +259,3 @@ task getResource(group: "build", description: "Fetch a CAS resource and move it 
 def isRunningCasServerSnapshot(casServerVersion) {
     return "${casServerVersion}".contains("-SNAPSHOT")
 }
-
-task downloadTomcat(type: Download) {
-    def tomcatMajorVersion = "${tomcatVersion}".substring(0, "${tomcatVersion}".indexOf("."))
-    def downloadFile = "https://www.apache.org/dist/tomcat/tomcat-${tomcatMajorVersion}/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}.zip"
-    logger.info "Downloading file $downloadFile"
-    src downloadFile
-    dest new File("apache-tomcat.zip")
-    overwrite false
-}
-
-task unzipTomcat(type: Copy) {
-    from zipTree(downloadTomcat.dest)
-    into buildDir
-    includeEmptyDirs = false
-}
-
-task shutdownTomcat(type:Exec) {
-    doFirst {
-        new File("${tomcatDirectory}/bin/catalina.sh").setExecutable(true)
-        new File("${tomcatDirectory}/bin/shutdown.sh").setExecutable(true)
-        environment["CATALINA_HOME"] = "${tomcatDirectory}"
-        commandLine "${tomcatDirectory}/bin/shutdown.sh", "2>/dev/null"
-        ignoreExitValue = true
-    }
-}
-
-task tomcatDeploy(type:Exec) {
-    dependsOn build, downloadTomcat, unzipTomcat, shutdownTomcat
-
-    doFirst {
-        Files.copy(Paths.get(bootWar.archivePath.canonicalPath), 
-            Paths.get("${tomcatDirectory}/webapps/${casWebApplicationBinaryName}"), 
-            StandardCopyOption.REPLACE_EXISTING)
-        new File("${tomcatDirectory}/bin/catalina.sh").setExecutable(true)
-        new File("${tomcatDirectory}/bin/startup.sh").setExecutable(true)
-        mkdir "${tomcatDirectory}/logs"
-        environment["CATALINA_HOME"] = "${tomcatDirectory}"
-        commandLine "${tomcatDirectory}/bin/startup.sh"
-    }
-}
-
-tail {
-    log = files("${tomcatDirectory}/logs/catalina.out")
-    showColors = true
-    doFirst {
-        println "Type 'quit' to exit"
-    }
-}
-
-build.mustRunAfter(setExecutable)
-unzipTomcat.mustRunAfter(downloadTomcat)
-shutdownTomcat.mustRunAfter(unzipTomcat)
-tomcatDeploy.mustRunAfter(shutdownTomcat).finalizedBy(tail)
