@@ -3,7 +3,7 @@ FROM adoptopenjdk/openjdk11:alpine-slim AS overlay
 RUN mkdir -p cas-overlay
 COPY ./src cas-overlay/src/
 COPY ./gradle/wrapper/ cas-overlay/gradle/wrapper/
-COPY ./gradlew ./settings.gradle ./build.gradle /cas-overlay/
+COPY ./gradlew ./settings.gradle ./build.gradle ./gradle.properties /cas-overlay/
 
 RUN mkdir -p ~/.gradle \
     && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties \
