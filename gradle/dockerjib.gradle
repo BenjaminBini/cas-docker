@@ -50,6 +50,6 @@ task deleteWebAppFromJib(type: Delete, group: "Docker", description: "Explodes t
     delete "src/main/jib/docker/cas"
 }
 
-task jib(group: "Docker", description: "Build CAS Docker image") {
+task jibit(group: "Docker", description: "Build CAS Docker image") {
     dependsOn jibDockerBuild
 }
