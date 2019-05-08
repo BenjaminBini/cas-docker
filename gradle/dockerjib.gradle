@@ -49,7 +49,3 @@ task copyConfigIntoJib(type: Copy, group: "Docker", description: "Copy the CAS c
 task deleteWebAppFromJib(type: Delete, group: "Docker", description: "Explodes the CAS web application archive") {
     delete "src/main/jib/docker/cas"
 }
-
-task jibit(group: "Docker", description: "Build CAS Docker image") {
-    dependsOn jibDockerBuild
-}
