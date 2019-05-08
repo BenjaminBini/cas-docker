@@ -7,9 +7,13 @@ COPY ./gradlew ./settings.gradle ./build.gradle ./gradle.properties /cas-overlay
 
 RUN mkdir -p ~/.gradle \
     && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties \
+    && echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties \
     && cd cas-overlay \
     && chmod 750 ./gradlew \
-    && ./gradlew clean build --parallel;
+    && ./gradlew clean;
+
+RUN cd cas-overlay \
+    && ./gradlew build --parallel;
 
 FROM adoptopenjdk/openjdk11:alpine-jre AS cas
 
@@ -30,5 +34,8 @@ COPY --from=overlay cas-overlay/build/libs/cas.war cas-overlay/
 EXPOSE 8080 8443
 
 ENV PATH $PATH:$JAVA_HOME/bin:.
+
+WORKDIR cas-overlay
+RUN ls -al
 
 CMD ["exec java -jar cas-overlay/cas.war"]
