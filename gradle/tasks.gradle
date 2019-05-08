@@ -39,7 +39,7 @@ task explodeWar(type: Copy, group: "build", description: "Explodes the CAS web a
 task run(group: "build", description: "Run the CAS web application in embedded container mode") {
     dependsOn build
     doLast {
-        def casRunArgs = Arrays.asList("-Xmx2048M -XX:+TieredCompilation -XX:TieredStopAtLevel=1".split(" "))
+        def casRunArgs = Arrays.asList("-server -noverify -Xmx2048M -XX:+TieredCompilation -XX:TieredStopAtLevel=1".split(" "))
         javaexec {
             main = "-jar"
             jvmArgs = casRunArgs
