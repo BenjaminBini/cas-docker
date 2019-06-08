@@ -1,5 +1,7 @@
 import org.apache.ivy.util.url.*
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.api.tasks.Copy
+
 import java.nio.file.*
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style;
@@ -21,6 +23,8 @@ def tomcatDirectory = "${buildDir}/apache-tomcat-${tomcatVersion}"
 project.ext."tomcatDirectory" = tomcatDirectory
 
 def explodedDir="${buildDir}/cas"
+def explodedResourcesDir="${buildDir}/cas-resources"
+def resourceJarName = "cas-server-webapp-resources"
 
 task copyCasConfiguration(type: Copy, group: "build", description: "Copy the CAS configuration from this project to /etc/cas/config") {
     from "etc/cas/config"
@@ -34,6 +38,12 @@ task explodeWar(type: Copy, group: "build", description: "Explodes the CAS web a
     dependsOn build
     from zipTree("build/libs/${casWebApplicationBinaryName}")
     into explodedDir
+}
+
+task explodeResources(type: Copy, group: "build", description: "Explodes the resources jar from the CAS web application archive") {
+    dependsOn explodeWar
+    from zipTree("${explodedDir}/WEB-INF/lib/${resourceJarName}-${casServerVersion}.jar")
+    into explodedResourcesDir
 }
 
 task run(group: "build", description: "Run the CAS web application in embedded container mode") {
@@ -195,10 +205,10 @@ task createKeystore(group: "build", description: "Create CAS keystore") {
 }
 
 task listTemplateViews (group: "build", description: "List all CAS views") {
-    dependsOn explodeWar
+    dependsOn explodeResources
 
     doFirst {
-        fileTree(explodedDir).matching {
+        fileTree(explodedResourcesDir).matching {
             include "**/*.html"
         }
         .collect { it.name }
@@ -208,12 +218,12 @@ task listTemplateViews (group: "build", description: "List all CAS views") {
 }
 
 task getResource(group: "build", description: "Fetch a CAS resource and move it into the overlay") {
-    dependsOn explodeWar
+    dependsOn explodeResources
 
     doFirst {
         def resourceName = project.getProperty("resourceName")
 
-        def results = fileTree(explodedDir).matching {
+        def results = fileTree(explodedResourcesDir).matching {
             include "**/${resourceName}.*"
         }
         if (results.isEmpty()) {
@@ -225,7 +235,7 @@ task getResource(group: "build", description: "Fetch a CAS resource and move it 
             return
         }
 
-        def fromFile = explodedDir + "/WEB-INF/classes"
+        def fromFile = explodedResourcesDir
         def resourcesDir = "src/main/resources"
         mkdir resourcesDir
 
