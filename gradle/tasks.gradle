@@ -34,14 +34,14 @@ task copyCasConfiguration(type: Copy, group: "build", description: "Copy the CAS
     }
 }
 
-task explodeWar(type: Copy, group: "build", description: "Explodes the CAS web application archive") {
+task explodeWarOnly(type: Copy, group: "build", description: "Explodes the CAS web application archive") {
     dependsOn build
     from zipTree("build/libs/${casWebApplicationBinaryName}")
     into explodedDir
 }
 
-task explodeResources(type: Copy, group: "build", description: "Explodes the resources jar from the CAS web application archive") {
-    dependsOn explodeWar
+task explodeWar(type: Copy, group: "build", description: "Explodes the CAS archive and resources jar from the CAS web application archive") {
+    dependsOn explodeWarOnly
     from zipTree("${explodedDir}/WEB-INF/lib/${resourceJarName}-${casServerVersion}.jar")
     into explodedResourcesDir
 }
@@ -205,7 +205,7 @@ task createKeystore(group: "build", description: "Create CAS keystore") {
 }
 
 task listTemplateViews (group: "build", description: "List all CAS views") {
-    dependsOn explodeResources
+    dependsOn explodeWar
 
     doFirst {
         fileTree(explodedResourcesDir).matching {
@@ -218,7 +218,7 @@ task listTemplateViews (group: "build", description: "List all CAS views") {
 }
 
 task getResource(group: "build", description: "Fetch a CAS resource and move it into the overlay") {
-    dependsOn explodeResources
+    dependsOn explodeWar
 
     doFirst {
         def resourceName = project.getProperty("resourceName")
