@@ -41,10 +41,10 @@ To list all available CAS views and templates:
 ./gradlew[.bat] listTemplateViews
 ```
 
-To unzip and explode the CAS web application file:
+To unzip and explode the CAS web application file and the internal resources jar:
 
 ```bash
-./gradlew[.bat] explodeWar
+./gradlew[.bat] explodeResources
 ```
 
 # Configuration
