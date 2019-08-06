@@ -35,7 +35,7 @@ task copyCasConfiguration(type: Copy, group: "build", description: "Copy the CAS
 }
 
 task explodeWarOnly(type: Copy, group: "build", description: "Explodes the CAS web application archive") {
-    dependsOn build
+    dependsOn 'build'
     from zipTree("build/libs/${casWebApplicationBinaryName}")
     into explodedDir
 }
@@ -47,7 +47,7 @@ task explodeWar(type: Copy, group: "build", description: "Explodes the CAS archi
 }
 
 task run(group: "build", description: "Run the CAS web application in embedded container mode") {
-    dependsOn build
+    dependsOn 'build'
     doLast {
         def casRunArgs = Arrays.asList("-server -noverify -Xmx2048M -XX:+TieredCompilation -XX:TieredStopAtLevel=1".split(" "))
         javaexec {
@@ -67,7 +67,7 @@ task setExecutable(group: "build", description: "Configure the project to run in
 }
 
 task executable(type:Exec, group: "build", description: "Run the CAS web application in standalone executable mode") {
-    dependsOn setExecutable, build
+    dependsOn setExecutable, 'build'
     doFirst {
         workingDir "."
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -79,7 +79,7 @@ task executable(type:Exec, group: "build", description: "Run the CAS web applica
 }
 
 task debug(group: "build", description: "Debug the CAS web application in embedded mode on port 5005") {
-    dependsOn build
+    dependsOn 'build'
     doLast {
         logger.info "Debugging process is started in a suspended state, listening on port 5005."
         def casArgs = Arrays.asList("-Xmx2048M".split(" "))

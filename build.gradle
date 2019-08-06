@@ -3,14 +3,16 @@ buildscript {
         mavenLocal()
         mavenCentral()
         jcenter()
+        maven { url "https://repo.spring.io/libs-snapshot" }
         maven { url "https://repo.spring.io/libs-milestone" }
-        maven { url "https://repo.spring.io/libs-snapshot/" }
+        maven { url "https://repo.spring.io/libs-snapshot" }
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath "de.undercouch:gradle-download-task:${project.gradleDownloadTaskVersion}"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.springBootVersion}"
         classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:${project.jibVersion}"
+        classpath "io.freefair.gradle:maven-plugin:3.7.5"
     }
 }
 
@@ -31,7 +33,7 @@ def casWebApplicationBinaryName = "cas.war"
 project.ext."casServerVersion" = casServerVersion
 project.ext."casWebApplicationBinaryName" = casWebApplicationBinaryName
 
-apply from: rootProject.file("gradle/waroverlay.gradle")
+apply plugin: "io.freefair.war-overlay"
 apply from: rootProject.file("gradle/tasks.gradle")
 
 apply plugin: "war"
@@ -42,8 +44,8 @@ apply from: rootProject.file("gradle/springboot.gradle")
 apply from: rootProject.file("gradle/dockerjib.gradle")
 
 dependencies {
-    compile "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}"
     // Other CAS dependencies/modules may be listed here...
+    // compile "org.apereo.cas:cas-server-support-json-service-registry:${casServerVersion}"
 }
 
 tasks.findByName("jibDockerBuild")
@@ -82,9 +84,16 @@ idea {
     }
 }
 
-war {
-    includeWarJars = true
+bootWar {
     entryCompression = ZipEntryCompression.STORED
+    overlays {
+        // https://docs.freefair.io/gradle-plugins/current/reference/#_io_freefair_war_overlay
+        cas {
+            from "org.apereo.cas:cas-server-webapp${project.appServer}:${casServerVersion}@war"
+            provided = false
+            //excludes = ["WEB-INF/lib/somejar-1.0*"]
+        }
+    }    
 }
 
 
