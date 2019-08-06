@@ -38,7 +38,7 @@ stages:
 jobs:
   include:
     - stage: build
-      script: ./gradlew clean build --stacktrace --no-daemon --refresh-dependencies
+      script: ./gradlew clean build --stacktrace --no-daemon --refresh-dependencies -Dorg.gradle.internal.http.socketTimeout=600000 -Dorg.gradle.internal.http.connectionTimeout=600000
       name: "Build CAS"
       ############################################
     - stage: validate
