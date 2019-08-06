@@ -1,0 +1,39 @@
+language: java
+sudo: required
+dist: trusty
+services:
+  - docker
+branches:
+  only:
+    - master
+before_cache:
+  - rm -rf $HOME/.gradle/caches/5.*/
+  - rm -rf $HOME/.gradle/caches/4.*/
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+  - find ~/.gradle/caches/ -name "*.lock" -type f -delete
+cache:
+  bundler: false
+  cargo: false
+  directories:
+    - $HOME/.m2
+    - $HOME/.npm/
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+env:
+  global:
+    - JAVA_OPTS="-Xms512m -Xmx4048m -Xss128m -XX:ReservedCodeCacheSize=512m -XX:+UseG1GC -Xverify:none -server"
+    - GRADLE_OPTS="-Xms512m -Xmx1024m -Xss128m -XX:ReservedCodeCacheSize=512m -XX:+UseG1GC -Xverify:none -server"
+jdk:
+- openjdk11
+before_install:
+- echo -e "Configuring Gradle wrapper...\n"
+- mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
+- chmod -R 777 ./gradlew
+install: true
+stages:
+  - build
+jobs:
+  include:
+    - stage: build
+      script: ./gradlew clean build --parallel --stacktrace --build-cache --configure-on-demand --no-daemon
+      name: "Build CAS"
