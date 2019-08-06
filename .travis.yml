@@ -33,19 +33,21 @@ before_install:
 install: true
 stages:
   - build
+  - validate
   - docker
 jobs:
   include:
     - stage: build
       script: ./gradlew clean build --stacktrace --no-daemon --refresh-dependencies
       name: "Build CAS"
-    - stage: build
+      ############################################
+    - stage: validate
       script: ./gradlew downloadShell
       name: "Download CAS Shell"
-    - stage: build
+    - stage: validate
       script: ./gradlew listTemplateViews
       name: "List CAS Template Views"
-    - stage: build
+    - stage: validate
       script: ./gradlew explodeWar
       name: "Unzip CAS Web Application"
       ############################################
