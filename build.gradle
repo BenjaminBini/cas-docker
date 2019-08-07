@@ -12,7 +12,7 @@ buildscript {
         classpath "de.undercouch:gradle-download-task:${project.gradleDownloadTaskVersion}"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${project.springBootVersion}"
         classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:${project.jibVersion}"
-        classpath "io.freefair.gradle:maven-plugin:3.7.5"
+        classpath "io.freefair.gradle:maven-plugin:${project.gradleMavenPluginVersion}"
     }
 }
 
