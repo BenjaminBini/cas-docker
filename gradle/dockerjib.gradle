@@ -32,6 +32,7 @@ jib {
             '/docker/entrypoint.sh': '755'
         ]
     }
+    allowInsecureRegistries = project.allowInsecureRegistries
 }
 
 task copyWebAppIntoJib(type: Copy, group: "Docker", description: "Copy the web application into Docker image") {

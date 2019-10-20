@@ -95,7 +95,7 @@ bootWar {
             provided = false
             //excludes = ["WEB-INF/lib/somejar-1.0*"]
         }
-    }    
+    }
 }
 
 
