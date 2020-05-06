@@ -32,6 +32,8 @@ COPY etc/cas/services/ /etc/cas/services/
 COPY etc/cas/saml/ /etc/cas/saml/
 COPY --from=overlay cas-overlay/build/libs/cas.war cas-overlay/
 
+RUN keytool -keystore $JAVA_HOME/jre/lib/security/cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ldapcert -file /etc/cas/ldap.cer
+
 EXPOSE 8080 8443
 
 ENV PATH $PATH:$JAVA_HOME/bin:.
