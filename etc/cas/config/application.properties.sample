@@ -1,0 +1,5 @@
+server.name=
+
+ldap.url=
+ldap.bindDn=
+ldap.bindCredential=

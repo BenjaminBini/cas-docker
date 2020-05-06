@@ -3,9 +3,11 @@ services:
   cas:
     image: adapei-cas
     build: .
+    volumes:
+      - /etc/cas/config/application.properties:/etc/cas/config/application.properties
     ports:
-     - "8443:8443"
-     - "8080:8080"
+      - "8443:8443"
+      - "8080:8080"
   
   nginx:
     image: nginx:1.15-alpine
