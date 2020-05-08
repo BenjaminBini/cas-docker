@@ -1,10 +1,12 @@
 FROM adoptopenjdk/openjdk11:alpine-slim AS overlay
 
+# Create needed directories and copy sources
 RUN mkdir -p cas-overlay
 COPY ./src cas-overlay/src/
 COPY ./gradle/ cas-overlay/gradle/
 COPY ./gradlew ./settings.gradle ./build.gradle ./gradle.properties /cas-overlay/
 
+# Init gradle environment
 RUN mkdir -p ~/.gradle \
     && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties \
     && echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties \
@@ -12,20 +14,20 @@ RUN mkdir -p ~/.gradle \
     && chmod 750 ./gradlew \
     && ./gradlew --version;
 
+# Run gradle clean build
 RUN cd cas-overlay \
     && ./gradlew clean build --parallel;
 
 FROM adoptopenjdk/openjdk11:alpine-jre AS cas
 
-LABEL "Organization"="Apereo"
-LABEL "Description"="Apereo CAS"
-
+# Create needed directories
 RUN cd / \
     && mkdir -p /etc/cas/config \
     && mkdir -p /etc/cas/services \
     && mkdir -p /etc/cas/saml \
     && mkdir -p cas-overlay;
 
+# Copy CAS config and overlay
 COPY etc/cas/ /etc/cas/
 COPY etc/cas/config/ /etc/cas/config/
 COPY etc/cas/services/ /etc/cas/services/
