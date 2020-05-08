@@ -1,7 +1,7 @@
 version: '3'
 services:
   cas:
-    image: adapei-cas
+    image: cas
     build: .
     volumes:
       - ./etc/cas/config/application.properties:/etc/cas/config/application.properties
