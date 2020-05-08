@@ -13,10 +13,10 @@ For HTTPS to work, run `./init-letsencrypt.sh` from the server corresponding to 
 To create the docker image from the source, clone this repository and run this command from the repository directory: 
 
 ```sh
-$ docker build -t cas:latest --build-arg LDAP_HOST=${LDAPS_HOST} .  
+$ docker build -t cas:latest --build-arg LDAPS_HOST=${LDAPS_HOST} .  
 ```
 
-In this command, replace ${LDAPS_HOST} with the IP and port of your secure LDAP connection (eg. `111.222.333:636`).
+In this command, replace `${LDAPS_HOST}` with the IP and port of your secure LDAP connection (eg. `111.222.333:636`).
 
 ### Configure environment
 
