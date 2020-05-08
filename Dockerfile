@@ -32,6 +32,10 @@ COPY etc/cas/services/ /etc/cas/services/
 COPY etc/cas/saml/ /etc/cas/saml/
 COPY --from=overlay cas-overlay/build/libs/cas.war cas-overlay/
 
+# Install OpenSSL and install cert in Java cacerts
+ARG LDAPS_HOST
+RUN apk upgrade --update-cache --available && apk add openssl
+RUN echo -n | openssl s_client -connect ${LDAPS_HOST} | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /etc/cas/ldap.cer
 RUN keytool -importcert -file /etc/cas/ldap.cer -alias ldapcert -cacerts -storepass changeit -noprompt
 
 EXPOSE 8080 8443
