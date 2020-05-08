@@ -1,5 +1,6 @@
-server.name=
+server.url=
 
 ldap.url=
 ldap.bindDn=
 ldap.bindCredential=
+ldap.baseDn=
