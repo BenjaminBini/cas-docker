@@ -6,7 +6,6 @@ services:
     volumes:
       - /etc/cas/config/application.properties:/etc/cas/config/application.properties
     ports:
-      - "8443:8443"
       - "8080:8080"
   
   nginx:

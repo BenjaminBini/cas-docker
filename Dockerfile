@@ -38,7 +38,8 @@ RUN apk upgrade --update-cache --available && apk add openssl
 RUN echo -n | openssl s_client -connect ${LDAPS_HOST} | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /etc/cas/ldap.cer
 RUN keytool -importcert -file /etc/cas/ldap.cer -alias ldapcert -cacerts -storepass changeit -noprompt
 
-EXPOSE 8080 8443
+# Expose port 8080
+EXPOSE 8080
 
 ENV PATH $PATH:$JAVA_HOME/bin:.
 
