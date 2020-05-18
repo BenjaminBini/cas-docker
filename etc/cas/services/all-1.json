@@ -1,0 +1,10 @@
+{
+  "@class": "org.apereo.cas.services.RegexRegisteredService",
+  "serviceId": "^(https|http|imap|imaps)://.*",
+  "name": "Wildcard",
+  "id": 1,
+  "evaluationOrder": 99999,
+  "attributeReleasePolicy": {
+    "@class": "org.apereo.cas.services.ReturnAllAttributeReleasePolicy"
+  }
+}
