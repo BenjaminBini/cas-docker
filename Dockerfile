@@ -25,6 +25,7 @@ RUN cd / \
     && mkdir -p /etc/cas/config \
     && mkdir -p /etc/cas/services \
     && mkdir -p /etc/cas/saml \
+    && mkdir -p /etc/cas/static \
     && mkdir -p cas-overlay;
 
 # Copy CAS config and overlay
@@ -33,6 +34,7 @@ COPY etc/cas/config/ /etc/cas/config/
 COPY etc/cas/services/ /etc/cas/services/
 COPY etc/cas/saml/ /etc/cas/saml/
 COPY etc/cas/templates/ /etc/cas/templates/
+COPY etc/cas/templates/ /etc/cas/static/
 COPY --from=overlay cas-overlay/build/libs/cas.war cas-overlay/
 
 # Install OpenSSL and install cert in Java cacerts

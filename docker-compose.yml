@@ -7,6 +7,7 @@ services:
       - ./etc/cas/config/application.properties:/etc/cas/config/application.properties
       - ./etc/cas/services:/etc/cas/services
       - ./etc/cas/templates:/etc/cas/templates
+      - ./etc/cas/static:/etc/cas/static
     ports:
       - "8080:8080"
   
