@@ -5,6 +5,7 @@ services:
     build: .
     volumes:
       - ./etc/cas/config/application.properties:/etc/cas/config/application.properties
+      - ./etc/cas/services:/etc/cas/services
       - ./etc/cas/templates:/etc/cas/templates
     ports:
       - "8080:8080"
