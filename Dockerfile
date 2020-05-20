@@ -25,6 +25,7 @@ RUN cd / \
     && mkdir -p /etc/cas/config \
     && mkdir -p /etc/cas/services \
     && mkdir -p /etc/cas/saml \
+    && mkdir -p /etc/cas/templates \
     && mkdir -p /etc/cas/static \
     && mkdir -p cas-overlay;
 
