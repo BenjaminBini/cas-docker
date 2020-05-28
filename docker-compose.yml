@@ -15,7 +15,7 @@ services:
       - ./data/nginx:/etc/nginx/conf.d
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
-      - /data/drupal/site:/var/www/drupal
+      - /data/drupal:/var/www/drupal
     ports:
       - "80:80"
       - "443:443"
@@ -31,9 +31,9 @@ services:
 
   drupal:
     image: drupal
-    build: /data/drupal/site
+    build: /data/drupal/public
     volumes:
-      - /data/drupal/site:/var/www/drupal
+      - /data/drupal:/var/www/drupal
 
   mariadb:
     image: mariadb
