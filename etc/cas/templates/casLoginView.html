@@ -13,35 +13,28 @@
 <body class="login">
     <main role="main" class="container-fluid mt-3 mb-3">
         <div layout:fragment="content" class="row">
+            <!-- Connexion block -->
             <div id="loginForm"
                  th:if="${@casThymeleafLoginFormDirector.isLoginFormViewable(#vars)}">
                 <div th:replace="fragments/loginform :: loginform">
                     <a href="fragments/loginform.html">Login Form goes here</a>
                 </div>
             </div>
-            <div id="providers" style="display: none;">
-                <div th:replace="fragments/loginProviders :: loginProviders">
-                    <a href="fragments/loginProviders.html">loginProviders</a>
+            <div id="info-blocks">
+                <!-- Rappel block -->
+                <div id='rappel-block' class='block'>
+                    <div class='block--content'>
+                        Vos identifiants sont ceux de votre compte Windows ADAPEI&#8239;69.
+                    </div>
+                </div>
+
+                <!-- Security block -->
+                <div id='security-block' class='block'>
+                    <div class='block--content'>
+                        Pour des raisons de sécurité, veuillez-vous déconnecter et fermer votre navigateur lorsque vous avez fini d'accéder aux services authentifiés.
+                    </div>
                 </div>
             </div>
-
-            <div id="acceptto" class="col" th:if="${accepttoApplicationId}">
-                <div th:replace="fragments/accepttoQRCode :: accepttoQRCode">
-                    <a href="fragments/accepttoQRCode.html">accepttoQRCode</a>
-                </div>
-                <script>
-                    $('#loginForm').addClass("col");
-                </script>
-            </div>
-
-            <script>
-                if ($('#list-providers').length) {
-                    $('#providers').addClass("col");
-                    $('#loginForm').addClass("col");
-                    $('#providers').show();
-                }
-            </script>
-
         </div>
     </main>
 </body>

@@ -8,7 +8,7 @@
     <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">CAS &#8211; Central Authentication Service</title>
 
     <link rel="stylesheet" type="text/css" th:href="@{#{webjars.fontawesomemin.css}}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{#{webjars.bootstrapmin.css}}"/>
+<!--    <link rel="stylesheet" type="text/css" th:href="@{#{webjars.bootstrapmin.css}}"/>-->
 
     <!--/* Core CAS CSS */-->
     <link rel="stylesheet" type="text/css" href="../static/css/cas.css" th:href="@{${#themes.code('cas.standard.css.file')}}"/>
@@ -26,7 +26,7 @@
     <a href="fragments/header.html">Header</a> fragment will go here
 </div>
 
-<main role="main" class="container mt-3 mb-3">
+<main role="main" class="">
     <div layout:fragment="content" id="content">
         CAS content will go here
     </div>

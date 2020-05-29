@@ -10,19 +10,10 @@
 </head>
 <body>
 <main role="main" class="container mt-3 mb-3">
-    <div th:fragment="loginsidebar" id="sidebar">
-        <div class="sidebar-content">
-            <p th:utext="#{screen.welcome.security}">For security reasons, please <a href="logout">log out</a> and exit
-                your web browser when you are done accessing \
-                services that require authentication!</p>
 
-            <sub id="copyright" th:utext="#{copyright}"></sub>
-            <br>
-            <sub>Powered by <a href="https://github.com/apereo/cas">Apereo CAS</a></sub>
-            <code>
-                <sub th:text="${T(org.apereo.cas.util.CasVersion).getVersion() + ' ' + T(org.apereo.cas.util.CasVersion).getDateTime()}"></sub>
-            </code>
-        </div>
+<!--    Nothing to do here -->
+
+    <div th:fragment="loginsidebar" id="sidebar">
     </div>
 </main>
 </body>

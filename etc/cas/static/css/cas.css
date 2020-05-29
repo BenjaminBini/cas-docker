@@ -1,0 +1,295 @@
+/*****************/
+/* Global design */
+/*****************/
+
+@font-face {
+	font-family: "Open Sans";
+	src: url('../fonts/OpenSans-Regular.ttf');
+}
+
+@font-face {
+	font-family: "adapei-69";
+	src: url('../fonts/adapei-69.ttf');
+}
+
+@font-face {
+	font-family: "Cabin";
+	src: url('../fonts/Cabin-Regular.ttf');
+	src: url('../fonts/Cabin-Bold.ttf');
+}
+
+body {
+	background-color: #F0F0F0;
+	margin: 0;
+}
+
+nav {
+	width: 100%;
+	height: 80px;
+	
+	display: flex;
+
+	background-color: white;
+}
+
+@media screen and (min-width: 595px)
+{
+	#content {
+		display: flex;
+		align-items: flex-start;
+		flex-wrap: wrap;
+		justify-content: space-between;
+
+		margin: 76px auto 0;
+		max-width: 575px;
+	}
+}
+
+@media screen and (max-width: 594px)
+{
+	#content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin-top: 76px;
+	}
+}
+
+/* Block design */
+.block {
+	display: block;
+
+	height: 100%;
+	background-color: white;
+	
+	border-radius: 6px;
+
+	color: black;
+	font-family: Open Sans, Arial;
+	font-size: 13px;
+	letter-spacing: 0;
+}
+
+.block--header {
+	position: relative;
+	height: calc(50px - 15px - 15px);
+	padding: 15px 0 15px 50px;
+
+	background-color: #80BA27;
+	border-radius: 6px 6px 0 0;
+}
+
+.block--header__icon {
+	height: 24px;
+	width: 24px;
+	
+	color: white;
+	
+	left: 20px;
+	
+	position: absolute;
+}
+
+.block--header__title {
+	height: 22px;
+	margin: auto 0;
+
+	font-family: Open Sans, Arial;
+	font-size: 17px;
+	letter-spacing: 0;
+	text-transform: uppercase;
+	color: white;
+
+}
+
+.block--header__title::before {
+	display: block;
+	position: absolute;
+	height: 0;
+	width: 0;
+	top: 50%;
+	left: 0;
+	margin-left: 0;
+	margin-top: -10px;
+
+	pointer-events: none;
+
+	content: '';
+	
+	border: solid #80BA27;
+	border-left: solid #F0F0F0;
+	border-width: 10px;
+}
+
+.block--content {
+	padding: 16px 20px 14px 20px;
+}
+
+.block--content .block--content__input input[type='text']{
+	height: 22px;
+	width: 100%;
+	max-width: calc(220px - 10px);
+    width: -moz-available;          /* WebKit-based browsers will ignore this. */
+    width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
+
+	border: 1px solid #707070;
+	border-radius: 6px;
+	
+	padding: 14px 0 14px 16px;
+	
+	margin: 5px 0;
+
+	font-size: 15px;
+	font-family: Open Sans, Arial, serif;
+}
+
+.block--content .block--content__input .content--input__padding {
+	padding: 14px 0 14px 16px;
+}
+
+
+.close {
+	color: black;
+	text-decoration: none;
+}
+.alert {
+	margin: 0;
+	margin-bottom: 15px;
+}
+
+.close:hover {
+	color: #ba0a80;
+}
+
+.block--content .block--content__input input[type='password']{
+	height: 22px;
+	width: 100%;
+	width: -moz-available;          /* WebKit-based browsers will ignore this. */
+	width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
+	max-width: calc(220px - 10px);
+
+	border: 1px solid #707070;
+	border-radius: 6px;
+
+	padding: 14px 0 14px 16px;
+
+	margin: 5px 0;
+
+	font-size: 15px;
+	font-family: "Open Sans", Arial, serif;
+}
+
+.block--content .block--content__input input[type='text']::placeholder {
+	opacity: 1;
+	color: #333333;
+}
+
+.block--content .block--content__input input[type='password']::placeholder {
+	opacity: 1;
+	color: #333333;
+}
+
+input[type="submit"] {
+	width: 100%;
+	height: 50px;
+
+	border: none;
+	border-radius: 6px;
+	background-color: #ba0a80;
+
+	padding: 0 13px;
+
+	margin: 5px 0;
+
+	font-weight: 700;
+	font-size: 20px;
+	font-family: Cabin, Arial, serif;
+	color: white;
+	text-align: center;
+}
+
+/*******************/
+/* Specific design */
+/*******************/
+
+.logo-adapei__img {
+	order: 0;
+	
+	height: 126px;
+	width: 250px;
+	
+	padding-left: 30px;
+	margin-right: auto;
+}
+
+@media screen and (max-width: 594px)
+{
+	.title-adapei {
+		display: none;
+	}
+}
+
+.title-adapei {
+	order: 1;
+	align-self: center;
+	padding: 24px 0 23px 0;
+	width: 280px;
+	font-family: Open Sans, Arial, serif;
+	font-size: 24px;
+	margin-left: 73px;
+}
+
+/* Connexion block */
+
+#loginForm {
+	width: 270px;
+	margin-bottom: 30px;
+}
+
+#loginForm .block--content {
+	height: auto;
+	padding: 20px;
+}
+
+#loginForm .block--header__title::after {
+	content: '';
+
+	position: absolute;
+
+	top: 50%;
+	left: 20px;
+	transform: translate(0, -50%);
+	
+	font-family: 'adapei-69';
+	font-weight: 300;
+	color: white;
+}
+
+/* Info blocks */
+
+#info-blocks {
+	width: 270px;
+}
+
+/* Rappel block */
+
+#rappel-block {
+	min-height: 90px;
+	font-size: 15px;
+	font-family: Open Sans, Arial, serif;
+	font-weight: bold;
+	letter-spacing: 0;
+	color: black;
+}
+
+/* Security block */
+
+#security-block {
+	min-height: 130px;
+	font-size: 15px;
+	font-family: Open Sans, Arial, serif;
+	letter-spacing: 0;
+	color: black;
+	margin-top: 30px;
+	margin-bottom: 15px;
+}
