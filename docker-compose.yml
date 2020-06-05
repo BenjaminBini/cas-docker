@@ -39,7 +39,7 @@ services:
       - /data/drupal:/var/www/drupal
 
   mariadb:
-    image: mariadb
+    image: mariadb:10.4
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: sully
