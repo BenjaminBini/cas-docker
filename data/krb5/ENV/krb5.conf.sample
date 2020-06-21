@@ -1,0 +1,27 @@
+[logging]
+ default = FILE:/etc/cas/logs/krb5libs.log
+ kdc = FILE:/etc/cas/logs/krb5kdc.log
+ admin_server = FILE:/etc/cas/logs/kadmind.log
+
+[libdefaults]
+ ticket_lifetime = 24h
+ # renew_lifetime = 7d
+ forwardable = true
+ rdns = false
+ default_realm = MY.REALM
+ default_keytab_name = /etc/krb5.keytab
+ dns_lookup_realm = false
+ dns_lookup_kdc = false
+ default_tkt_enctypes = arcfour-hmac-md5 des-cbc-crc des-cbc-md5
+ default_tgs_enctypes = arcfour-hmac-md5 des-cbc-crc des-cbc-md5
+ permitted_enctypes =  arcfour-hmac-md5 des-cbc-crc des-cbc-md5
+
+[realms]
+ MY.REALM = {
+  kdc = my.realm
+  default_domain = MY.REALM
+ }
+
+[domain_realm]
+ .my.realm = MY.REALM
+ my.realm = MY.REALM

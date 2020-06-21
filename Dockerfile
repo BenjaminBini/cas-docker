@@ -44,6 +44,14 @@ RUN apk upgrade --update-cache --available && apk add openssl
 RUN echo -n | openssl s_client -connect ${LDAPS_HOST} | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /etc/cas/ldap.cer
 RUN keytool -importcert -file /etc/cas/ldap.cer -alias ldapcert -cacerts -storepass changeit -noprompt
 
+# Install kerberos
+ARG ENV
+RUN apk add krb5
+COPY data/krb5/${ENV}/krb5.conf /etc/krb5.conf
+COPY data/krb5/${ENV}/krb5.keytab /etc/krb5.keytab
+COPY data/krb5/login.conf /etc/login.conf
+COPY data/krb5/java.security /opt/java/openjdk/conf/security/java.security
+
 # Expose port 8080
 EXPOSE 8080
 

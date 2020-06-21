@@ -4,3 +4,7 @@ ldap.url=
 ldap.bindDn=
 ldap.bindCredential=
 ldap.baseDn=
+
+spnego.kerberosRealm=
+spnego.kerberosKdc=
+spnego.jcifsServicePrincipal=

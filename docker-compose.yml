@@ -5,9 +5,14 @@ services:
     build: .
     volumes:
       - ./etc/cas/config/application.properties:/etc/cas/config/application.properties
+      - ./etc/cas/config/cas.properties:/etc/cas/config/cas.properties
       - ./etc/cas/services:/etc/cas/services
       - ./etc/cas/templates:/etc/cas/templates
       - ./etc/cas/static:/etc/cas/static
+    extra_hosts:
+      - "adapei69-siege.local:185.75.141.114"
+      - "allo.dev:37.61.245.26"
+    # entrypoint: sh
     ports:
       - "8080:8080"
   

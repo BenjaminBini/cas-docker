@@ -21,3 +21,5 @@ tmp/
 apache-tomcat.zip
 data/certbot
 etc/cas/config/application.properties
+krb5.conf
+krb5.keytab
