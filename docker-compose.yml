@@ -4,7 +4,6 @@ services:
     image: cas
     build: .
     volumes:
-      - ./etc/cas/config/application.properties:/etc/cas/config/application.properties
       - ./etc/cas/config/cas.properties:/etc/cas/config/cas.properties
       - ./etc/cas/services:/etc/cas/services
       - ./etc/cas/templates:/etc/cas/templates

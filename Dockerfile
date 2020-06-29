@@ -30,8 +30,10 @@ RUN cd / \
     && mkdir -p cas-overlay;
 
 # Copy CAS config and overlay
+ARG ENV
 COPY etc/cas/ /etc/cas/
 COPY etc/cas/config/ /etc/cas/config/
+COPY data/cas/${ENV}/application.properties /etc/cas/config/application.properties
 COPY etc/cas/services/ /etc/cas/services/
 COPY etc/cas/saml/ /etc/cas/saml/
 COPY etc/cas/templates/ /etc/cas/templates/
@@ -45,7 +47,6 @@ RUN echo -n | openssl s_client -connect ${LDAPS_HOST} | sed -ne '/-BEGIN CERTIFI
 RUN keytool -importcert -file /etc/cas/ldap.cer -alias ldapcert -cacerts -storepass changeit -noprompt
 
 # Install kerberos
-ARG ENV
 RUN apk add krb5
 COPY data/krb5/${ENV}/krb5.conf /etc/krb5.conf
 COPY data/krb5/${ENV}/krb5.keytab /etc/krb5.keytab
