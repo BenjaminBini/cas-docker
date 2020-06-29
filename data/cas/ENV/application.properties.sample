@@ -6,3 +6,4 @@ ldap.baseDn=
 spnego.kerberosRealm=
 spnego.kerberosKdc=
 spnego.jcifsServicePrincipal=
+defaultService=
