@@ -48,4 +48,5 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: sully
     volumes:
+      - ./data/mariadb/conf.d:/etc/mysql/conf.d
       - /data/drupal/db:/var/lib/mysql
