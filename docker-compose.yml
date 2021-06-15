@@ -6,6 +6,7 @@ services:
       - "53:53/udp"
       - "53:53/tcp"
     volumes:
+      - ./etc/unbound/unbound.conf:/usr/local/etc/unbound/unbound.conf
       - ./data/unbound:/usr/local/etc/unbound/conf.d
     networks:
       docker-network:
