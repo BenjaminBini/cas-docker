@@ -1,5 +1,16 @@
 version: '3'
 services:
+  unbound:
+    image: secns/unbound:1.13.1
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    volumes:
+      - ./data/unbound:/usr/local/etc/unbound/conf.d
+    networks:
+      docker-network:
+        ipv4_address: 172.28.1.1
+
   cas:
     image: cas
     build: .
@@ -8,13 +19,17 @@ services:
       - ./etc/cas/services:/etc/cas/services
       - ./etc/cas/templates:/etc/cas/templates
       - ./etc/cas/static:/etc/cas/static
+    dns: 172.28.1.1
     extra_hosts:
       - "adapei69-siege.local:185.75.141.114"
       - "allo.dev:37.61.245.26"
     # entrypoint: sh
     ports:
       - "8080:8080"
-  
+    networks:
+      docker-network:
+        ipv4_address: 172.28.1.2
+
   nginx:
     image: nginx:1.15-alpine
     restart: unless-stopped
@@ -27,7 +42,10 @@ services:
       - "80:80"
       - "443:443"
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-  
+    networks:
+      docker-network:
+        ipv4_address: 172.28.1.3
+
   certbot:
     image: certbot/certbot
     restart: unless-stopped
@@ -35,12 +53,19 @@ services:
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      docker-network:
+        ipv4_address: 172.28.1.4
 
   drupal:
     image: adapei-drupal
     build: /data/drupal/public
     volumes:
       - /data/drupal:/var/www/drupal
+    dns: 172.28.1.1
+    networks:
+      docker-network:
+        ipv4_address: 172.28.1.5
 
   mariadb:
     image: mariadb:10.4
@@ -50,3 +75,14 @@ services:
     volumes:
       - ./data/mariadb/conf.d:/etc/mysql/conf.d
       - /data/drupal/db:/var/lib/mysql
+    networks:
+      docker-network:
+        ipv4_address: 172.28.1.6
+
+networks:
+  docker-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16

@@ -20,6 +20,7 @@ tmp/
 ./apache-tomcat
 apache-tomcat.zip
 data/certbot
+data/unbound
 **/application.properties
 krb5.conf
 krb5.keytab
