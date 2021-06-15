@@ -3,6 +3,7 @@ buildscript {
         mavenLocal()
         mavenCentral()
         jcenter()
+        maven { url uri("./lib") }
         maven { url "https://repo.spring.io/libs-milestone" }
         maven { url "https://repo.spring.io/libs-snapshot" }
         maven { url "https://plugins.gradle.org/m2/" }

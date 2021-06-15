@@ -3,6 +3,7 @@ FROM adoptopenjdk/openjdk11:alpine-slim AS overlay
 # Create needed directories and copy sources
 RUN mkdir -p cas-overlay
 COPY ./src cas-overlay/src/
+COPY ./lib cas-overlay/lib/
 COPY ./gradle/ cas-overlay/gradle/
 COPY ./gradlew ./settings.gradle ./build.gradle ./gradle.properties /cas-overlay/
 
